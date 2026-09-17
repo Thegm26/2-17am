@@ -23,7 +23,7 @@
 2. Initial Account — establish whether Alex was with Rowan and who drove.
 3. Timeline — commit to the details of an alibi.
 4. Missing Car — explain why Alex's damaged car disappeared.
-5. Victim — respond when Voss identifies Daniel Hurst.
+5. The Pedestrian — confront the fact that the unknown person died.
 6. Recording — challenge or accept Voss's claim that the collision was filmed.
 7. Flashback — reveal what actually happened on the road.
 8. Interview Break — inspect the USB drive or attempt to leave.

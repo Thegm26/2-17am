@@ -198,10 +198,10 @@ Scenario 3 placeholder: commit to the details of an alibi.
 :: Missing Car
 Scenario 4 placeholder: explain why Alex's damaged car disappeared.
 
-[[Continue->Victim]]
+[[Continue->The Pedestrian]]
 
-:: Victim
-Scenario 5 placeholder: respond when Voss identifies Daniel Hurst.
+:: The Pedestrian
+Scenario 5 placeholder: confront the fact that the unknown pedestrian died.
 
 [[Continue->Recording]]
 
