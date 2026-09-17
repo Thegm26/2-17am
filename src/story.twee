@@ -5,6 +5,7 @@
 {
   "ifid": "4C9DA172-2A0D-4F0B-9CC7-217A4DB96042",
   "format": "SugarCube",
+  "format-version": "2.37.3",
   "start": "Start",
   "zoom": 1
 }

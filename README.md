@@ -20,8 +20,20 @@ and implement each scenario, beginning with the waiting room.
 - `docs/story-map.md` — narrative structure, state, routes, and endings
 - `dist/` — exported playable HTML (not committed until a build exists)
 
+## Build and play
+
+From the repository folder, run:
+
+```bash
+./scripts/build.sh
+```
+
+The first build downloads Tweego and SugarCube into the ignored `.tools`
+folder. Open `dist/2-17am.html` in a browser to play the result.
+
 ## Editing
 
-The story targets the SugarCube story format. It can be imported into Twine or
-compiled with Tweego once the local build tooling is added.
+The story targets SugarCube 2.37.3. Each section beginning with `::` in
+`src/story.twee` is a Twine passage. Links such as `[[Begin->Waiting Room]]`
+move the player from one passage to another.
 
