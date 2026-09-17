@@ -1,0 +1,106 @@
+:: StoryTitle
+2:17 AM
+
+:: StoryData
+{
+  "ifid": "4C9DA172-2A0D-4F0B-9CC7-217A4DB96042",
+  "format": "SugarCube",
+  "start": "Start",
+  "zoom": 1
+}
+
+:: StoryInit
+<<set $suspicion to 0>>
+<<set $alibi to "">>
+<<set $finalDecision to "">>
+<<set $inspectedCamera to false>>
+<<set $examinedPhoto to false>>
+<<set $questionedRecording to false>>
+<<set $discoveredCameraAngle to false>>
+<<set $detectedFakeStatement to false>>
+
+:: Start
+''2:17 AM''
+
+Two nights after the collision, Alex Vale sits beneath a dead camera and waits
+for Detective Mara Voss.
+
+[[Begin->Waiting Room]]
+
+:: Waiting Room
+Scenario 1 placeholder: explore the interview room before Voss arrives.
+
+[[Continue->Initial Account]]
+
+:: Initial Account
+Scenario 2 placeholder: establish whether Alex was with Rowan and who drove.
+
+[[Continue->Timeline]]
+
+:: Timeline
+Scenario 3 placeholder: commit to the details of an alibi.
+
+[[Continue->Missing Car]]
+
+:: Missing Car
+Scenario 4 placeholder: explain why Alex's damaged car disappeared.
+
+[[Continue->Victim]]
+
+:: Victim
+Scenario 5 placeholder: respond when Voss identifies Daniel Hurst.
+
+[[Continue->Recording]]
+
+:: Recording
+Scenario 6 placeholder: challenge or accept Voss's recording claim.
+
+[[Continue->Flashback]]
+
+:: Flashback
+Scenario 7 placeholder: reveal what actually happened on the road.
+
+[[Continue->Interview Break]]
+
+:: Interview Break
+Scenario 8 placeholder: inspect the USB drive or attempt to leave.
+
+[[Continue->Rowan Statement]]
+
+:: Rowan Statement
+Scenario 9 placeholder: determine whether Rowan's alleged statement is real.
+
+[[Continue->Contradiction Trap]]
+
+:: Contradiction Trap
+Scenario 10 placeholder: reconcile the alibi with Voss's evidence.
+
+[[Continue->Final Offer]]
+
+:: Final Offer
+Scenario 11 placeholder: choose loyalty, self-preservation, denial, or truth.
+
+[[The Perfect Lie]]
+[[False Witness]]
+[[No One Left Behind]]
+[[The Driver]]
+[[Scapegoat]]
+[[Caught in the Lie]]
+
+:: The Perfect Lie
+Ending placeholder.
+
+:: False Witness
+Ending placeholder.
+
+:: No One Left Behind
+Ending placeholder.
+
+:: The Driver
+Ending placeholder.
+
+:: Scapegoat
+Ending placeholder.
+
+:: Caught in the Lie
+Ending placeholder.
