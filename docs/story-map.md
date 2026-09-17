@@ -17,6 +17,7 @@
 - Already overwhelmed by the pregnancy and everything expected of him, Alex sees the collision as one more crisis he cannot face: "Fuck. Now I have to deal with this as well? Fuck it. We leave."
 - Driving away is a conscious, selfish refusal to take on another consequence. It is Alex's decision alone.
 - Rowan is too intoxicated to understand or clearly remember what happened.
+- When Rowan asks about the impact, Alex tells him they hit a pothole. Rowan's intoxication leaves him with only that uncertain version of events.
 - The victim remains unnamed because the story focuses on Alex's choices and his relationships with Maria and Rowan.
 
 ## Core state
