@@ -7,8 +7,16 @@
 - Rowan encourages Alex to attend a late-night party to clear his head.
 - Alex leaves Maria at home for the evening but cannot stop thinking about the situation or enjoy the party.
 - Alex decides to return home, and Rowan follows because he regrets encouraging Alex to escape the pressure.
-- Alex drives away from the party with Rowan as his passenger.
+- Rowan has drunk heavily by the time they leave. Alex drives with Rowan as his passenger.
 - There was no argument at the party, and Alex did not abandon Maria or end their relationship.
+
+## Confirmed collision
+
+- Alex hits an unknown pedestrian while driving home.
+- Alex panics and drives away immediately without stopping or checking the pedestrian.
+- The impact becomes Alex's point of no return; fleeing is his decision alone.
+- Rowan is too intoxicated to understand or clearly remember what happened.
+- The victim remains unnamed because the story focuses on Alex's choices and his relationships with Maria and Rowan.
 
 ## Core state
 
