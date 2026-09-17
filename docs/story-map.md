@@ -26,6 +26,14 @@
 - The time is intentionally arbitrary. It is not the collision time, evidence, or a police trick.
 - The malfunctioning clock creates atmosphere. Inspecting it only helps Alex notice the suspicious ticking elsewhere in the room.
 
+## Confirmed aftermath
+
+- Alex drops the heavily intoxicated Rowan at Rowan's home.
+- Alex then returns home to Maria.
+- Maria is angry that Alex left her to attend the party, so they do not speak that night.
+- The next morning, Alex tells Maria the evening was uneventful and tries to brush the subject aside.
+- Alex does not tell Maria about the collision.
+
 ## Core state
 
 - `suspicion`: visible pressure meter from 0 to 5
