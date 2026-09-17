@@ -12,6 +12,8 @@
 
 ## Confirmed collision
 
+- Maria calls while Alex is driving home. Seeing her name brings Alex's fear of permanent responsibility back to the surface.
+- Alex becomes frustrated—"Is this what my life is going to be now?"—and looks away from the road to reject or silence the call.
 - Alex hits an unknown pedestrian while driving home.
 - Alex stops only for a moment but does not get out or check the pedestrian.
 - Already overwhelmed by the pregnancy and everything expected of him, Alex sees the collision as one more crisis he cannot face: "Fuck. Now I have to deal with this as well? Fuck it. We leave."
