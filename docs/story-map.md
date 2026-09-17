@@ -51,21 +51,15 @@
 2. Initial Account — establish whether Alex was with Rowan and who drove.
 3. Timeline — commit to the details of an alibi.
 4. Hidden Car — explain why Alex's car has remained unseen since the party.
-5. The Pedestrian — confront the fact that the unknown person died.
-6. Recording — challenge or accept Voss's claim that the collision was filmed.
-7. Flashback — reveal what actually happened on the road.
-8. Interview Break — inspect the USB drive or attempt to leave.
-9. Rowan's Statement — identify whether the alleged statement is genuine.
-10. Contradiction Trap — reconcile the chosen alibi with Voss's evidence.
-11. Final Offer — protect Rowan, betray Rowan, deny everything, or confess.
+5. The Recording — confront the death, Voss's recording bluff, and Rowan's uncertain memory.
+6. Flashback — reveal what actually happened on the road.
+7. Final Offer — protect Rowan, betray Rowan, deny everything, or confess.
 
 ## Endings
 
 - The Perfect Lie
 - False Witness
-- No One Left Behind
 - The Driver
-- Scapegoat
 - Caught in the Lie
 
 ## Required playtest routes
