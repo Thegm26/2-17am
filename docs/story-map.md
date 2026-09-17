@@ -13,8 +13,9 @@
 ## Confirmed collision
 
 - Alex hits an unknown pedestrian while driving home.
-- Alex panics and drives away immediately without stopping or checking the pedestrian.
-- The impact becomes Alex's point of no return; fleeing is his decision alone.
+- Alex stops only for a moment but does not get out or check the pedestrian.
+- Already overwhelmed by the pregnancy and everything expected of him, Alex sees the collision as one more crisis he cannot face: "Fuck. Now I have to deal with this as well? Fuck it. We leave."
+- Driving away is a conscious, selfish refusal to take on another consequence. It is Alex's decision alone.
 - Rowan is too intoxicated to understand or clearly remember what happened.
 - The victim remains unnamed because the story focuses on Alex's choices and his relationships with Maria and Rowan.
 
