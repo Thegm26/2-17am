@@ -14,6 +14,8 @@
 <<set $suspicion to 0>>
 <<set $alibi to "">>
 <<set $timeline to "">>
+<<set $carStory to "">>
+<<set $fragmentResponse to "">>
 <<set $finalDecision to "">>
 <<set $inspectedCamera to false>>
 <<set $inspectedChair to false>>
@@ -326,7 +328,112 @@ You have answered a question Voss never asked.
 [[Continue->Hidden Car]]
 
 :: Hidden Car
-Scenario 4 placeholder: explain why Alex's car has remained unseen since the party.
+Voss turns to a clean page in the folder.
+
+“Let’s talk about your car.”
+
+“Why?”
+
+“It hasn’t been seen since Tuesday night.” She raises her eyes to yours. “Where is it, Alex?”
+
+* <<link "“In my garage. It wouldn’t start Wednesday morning.”">><<set $carStory to "mechanical_problem">><<goto "Car Mechanical Problem">><</link>>
+* <<link "“I haven’t needed to drive anywhere.”">><<set $carStory to "not_needed">><<set $suspicion += 1>><<goto "Car Not Needed">><</link>>
+* <<link "“Why are you asking about my car?”">><<set $carStory to "asked_why">><<goto "Car Asked Why">><</link>>
+* <<link "Refuse to answer.">><<set $carStory to "refused">><<goto "Car Refused">><</link>>
+
+:: Car Mechanical Problem
+“It’s in my garage. It wouldn’t start Wednesday morning.”
+
+“Has a mechanic looked at it?”
+
+“Not yet.”
+
+“Of course.”
+
+[[Continue->Headlight Fragment]]
+
+:: Car Not Needed
+“I haven’t needed to drive anywhere.”
+
+“You used it every day last week.”
+
+Voss does not explain how she knows that.
+
+[[Continue->Headlight Fragment]]
+
+:: Car Asked Why
+“Why are you asking about my car?”
+
+“Because a car like yours may have been involved in something.”
+
+She opens the folder.
+
+“I’m trying to determine whether it was yours.”
+
+[[Continue->Headlight Fragment]]
+
+:: Car Refused
+You say nothing.
+
+Voss nods as though you have confirmed something.
+
+“Then I’ll show you why I’m asking.”
+
+[[Continue->Headlight Fragment]]
+
+:: Headlight Fragment
+Voss removes a transparent evidence bag. A jagged piece of headlight rests inside.
+
+“This was recovered from the road. Same manufacturer, model and production year as your car.”
+
+It could be yours.
+
+It is yours.
+
+But she cannot know that yet.
+
+* <<link "“That could belong to thousands of cars.”">><<set $fragmentResponse to "common_part">><<goto "Fragment Common Part">><</link>>
+* <<link "“My headlights are intact.”">><<set $fragmentResponse to "headlights_intact">><<set $suspicion += 1>><<goto "Fragment Intact Lie">><</link>>
+* <<link "“I might have clipped something. It wasn’t a person.”">><<set $fragmentResponse to "admitted_collision">><<set $suspicion += 2>><<goto "Fragment Partial Admission">><</link>>
+* <<link "Say nothing.">><<set $fragmentResponse to "silent">><<goto "Fragment Silence">><</link>>
+
+:: Fragment Common Part
+“That could belong to thousands of cars.”
+
+“Correct.”
+
+Voss returns the bag to the folder.
+
+“That is why I’m still asking questions.”
+
+[[Continue->The Pedestrian]]
+
+:: Fragment Intact Lie
+“My headlights are intact.”
+
+Voss becomes very still.
+
+“I didn’t ask whether they were damaged.”
+
+[[Continue->The Pedestrian]]
+
+:: Fragment Partial Admission
+“I might have clipped something. It wasn’t a person.”
+
+Voss leans forward for the first time.
+
+“What did you clip?”
+
+You cannot answer without creating another lie.
+
+[[Continue->The Pedestrian]]
+
+:: Fragment Silence
+You keep your eyes on the evidence bag.
+
+Voss waits. When you give her nothing, she puts it away.
+
+[[Continue->The Pedestrian]]
 
 [[Continue->The Pedestrian]]
 
