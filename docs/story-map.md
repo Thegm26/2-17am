@@ -1,5 +1,15 @@
 # Story map
 
+## Confirmed backstory
+
+- Alex and Maria are together, and the pregnancy was unplanned.
+- Both are overwhelmed. Maria needs reassurance while Alex feels frightened and pressured by the responsibility.
+- Rowan encourages Alex to attend a late-night party to clear his head.
+- Alex leaves Maria at home for the evening but cannot stop thinking about the situation or enjoy the party.
+- Alex decides to return home, and Rowan follows because he regrets encouraging Alex to escape the pressure.
+- Alex drives away from the party with Rowan as his passenger.
+- There was no argument at the party, and Alex did not abandon Maria or end their relationship.
+
 ## Core state
 
 - `suspicion`: visible pressure meter from 0 to 5
@@ -39,4 +49,3 @@
 - Observant: Alex discovers enough details to expose Voss's bluffs.
 - Panicked: Alex contradicts earlier answers and reaches maximum suspicion.
 - Loyal, self-preserving, and remorseful final decisions.
-
