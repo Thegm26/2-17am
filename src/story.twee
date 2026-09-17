@@ -16,6 +16,8 @@
 <<set $timeline to "">>
 <<set $carStory to "">>
 <<set $fragmentResponse to "">>
+<<set $deathResponse to "">>
+<<set $recordingResponse to "">>
 <<set $finalDecision to "">>
 <<set $inspectedCamera to false>>
 <<set $inspectedChair to false>>
@@ -24,11 +26,13 @@
 <<set $askedAboutCharge to false>>
 <<set $examinedPhoto to false>>
 <<set $questionedRecording to false>>
+<<set $noticedRecordingContradiction to false>>
+<<set $askedAboutRowan to false>>
 <<set $discoveredCameraAngle to false>>
 <<set $detectedFakeStatement to false>>
 
 :: StoryCaption
-''Suspicion:'' $suspicion / 5
+<<set $suspicion to Math.min(5, $suspicion)>>''Suspicion:'' $suspicion / 5
 
 :: Start
 ''2:17 AM''
@@ -435,17 +439,136 @@ Voss waits. When you give her nothing, she puts it away.
 
 [[Continue->The Pedestrian]]
 
-[[Continue->The Pedestrian]]
-
 :: The Pedestrian
-Scenario 5 placeholder: confront the fact that the unknown pedestrian died.
+Voss rests one hand on the closed folder.
+
+“The pedestrian died before anyone called for help.”
+
+She watches your face.
+
+“Whoever drove away left him alone on that road.”
+
+* <<link "“Oh God…”">><<set $deathResponse to "shocked">><<goto "Death Shock">><</link>>
+* <<link "“That wasn’t me.”">><<set $deathResponse to "denied_early">><<set $suspicion += 1>><<goto "Death Denial">><</link>>
+* <<link "“Why are you telling me this?”">><<set $deathResponse to "asked_why">><<goto "Death Asked Why">><</link>>
+* <<link "Say nothing.">><<set $deathResponse to "silent">><<goto "Death Silence">><</link>>
+
+:: Death Shock
+“Oh God…”
+
+You look down before your face can say anything else.
+
+[[Continue->Recording]]
+
+:: Death Denial
+“That wasn’t me.”
+
+“I didn’t say it was.”
+
+The answer came too quickly. You know it. So does Voss.
+
+[[Continue->Recording]]
+
+:: Death Asked Why
+“Why are you telling me this?”
+
+“Because you might know why nobody stopped.”
+
+[[Continue->Recording]]
+
+:: Death Silence
+You press your tongue against the back of your teeth and say nothing.
+
+Voss waits a moment, then reaches into the folder.
 
 [[Continue->Recording]]
 
 :: Recording
-Scenario 6 placeholder: challenge or accept Voss's recording claim.
+Voss places a USB drive on the table.
 
-[[Continue->Flashback]]
+“A security camera recorded the collision.”
+
+Your eyes settle on the drive.
+
+“It recorded the impact, the car stopping—and the driver leaving.”
+
+* <<link "“Can I… can I see it?”">><<set $recordingResponse to "asked_to_see">><<set $questionedRecording to true>><<goto "Recording Asked To See">><</link>>
+* <<link "“Does it show who was driving?”">><<set $recordingResponse to "asked_driver">><<set $suspicion += 1>><<goto "Recording Asked Driver">><</link>>
+* <<link "“I don’t understand. You said it was only a car like mine.”">><<set $recordingResponse to "noticed_inconsistency">><<set $noticedRecordingContradiction to true>><<goto "Recording Inconsistency">><</link>>
+* <<link "“What did Rowan say?”">><<set $recordingResponse to "asked_rowan">><<set $askedAboutRowan to true>><<goto "Recording Asked Rowan">><</link>>
+* <<link "“I don’t know what you want me to say.”">><<set $recordingResponse to "overwhelmed">><<goto "Recording Overwhelmed">><</link>>
+
+:: Recording Asked To See
+“Can I… can I see it?”
+
+Voss covers the USB drive with two fingers.
+
+“Not tonight. It is evidence.”
+
+She slips it back into the folder before you can ask again.
+
+[[Continue->Rowan Memory]]
+
+:: Recording Asked Driver
+“Does it show who was driving?”
+
+Voss studies you.
+
+“It shows enough.”
+
+That is not an answer.
+
+[[Continue->Rowan Memory]]
+
+:: Recording Inconsistency
+“I don’t understand. You said it was only a car like mine.”
+
+“And now I’m giving you a chance to explain why it was there.”
+
+She has stepped around the inconsistency without answering it.
+
+[[Continue->Rowan Memory]]
+
+:: Recording Asked Rowan
+“What did Rowan say?”
+
+Voss watches the fear arrive before you can hide it.
+
+“Enough to be frightened.”
+
+[[Continue->Rowan Memory]]
+
+:: Recording Overwhelmed
+“I don’t know what you want me to say.”
+
+“The truth would be a start.”
+
+[[Continue->Rowan Memory]]
+
+:: Rowan Memory
+Voss closes the folder with the USB drive inside.
+
+“Rowan remembers the impact. He remembers asking what happened.”
+
+She pauses.
+
+“He remembers you saying it was a pothole.”
+
+<<if $inspectedChair>>
+The warm chair. The fresh crescents pressed into the vinyl.
+
+Rowan really was here.
+<</if>>
+
+<<if $alibi is "rowan_drove">>
+Voss leans closer.
+
+“Which is strange, because you told me Rowan was driving.”
+
+<<set $suspicion += 1>>
+<</if>>
+
+[[Remember the road->Flashback]]
 
 :: Flashback
 Scenario 7 placeholder: reveal what actually happened on the road.
