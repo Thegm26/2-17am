@@ -13,6 +13,7 @@
 :: StoryInit
 <<set $suspicion to 0>>
 <<set $alibi to "">>
+<<set $timeline to "">>
 <<set $finalDecision to "">>
 <<set $inspectedCamera to false>>
 <<set $inspectedChair to false>>
@@ -23,6 +24,9 @@
 <<set $questionedRecording to false>>
 <<set $discoveredCameraAngle to false>>
 <<set $detectedFakeStatement to false>>
+
+:: StoryCaption
+''Suspicion:'' $suspicion / 5
 
 :: Start
 ''2:17 AM''
@@ -191,7 +195,133 @@ One word. No surprise. No accusation.
 [[Remain silent->Timeline]]
 
 :: Timeline
-Scenario 3 placeholder: commit to the details of an alibi.
+<<if $alibi is "stayed_home">>
+“What did you do at home?” Voss asks. “You and Maria.”
+
+* <<link "“We spent the evening together.”">><<set $timeline to "with_maria">><<goto "Timeline With Maria">><</link>>
+* <<link "“Maria went to bed. I watched television.”">><<set $timeline to "watched_tv">><<goto "Timeline Television">><</link>>
+* <<link "“I went to bed early.”">><<set $timeline to "bed_early">><<goto "Timeline Early Bed">><</link>>
+<<elseif $alibi is "rowan_drove">>
+Voss tilts her head.
+
+“Three people watched Rowan stumble on the way out. But you let him drive your car?”
+
+* <<link "“He was drunk, not incapable.”">><<set $timeline to "rowan_capable">><<set $suspicion += 1>><<goto "Timeline Rowan Capable">><</link>>
+* <<link "“He seemed sober when we left.”">><<set $timeline to "rowan_seemed_sober">><<set $suspicion += 1>><<goto "Timeline Rowan Sober">><</link>>
+* <<link "“I drove first. We switched later.”">><<set $timeline to "switched_drivers">><<set $suspicion += 2>><<goto "Timeline Switched Drivers">><</link>>
+<<elseif $alibi is "alex_drove">>
+“Where did you take Rowan?”
+
+* <<link "“Straight home.”">><<set $timeline to "straight_home">><<goto "Timeline Straight Home">><</link>>
+* <<link "“We drove around until he felt better.”">><<set $timeline to "drove_around">><<set $suspicion += 1>><<goto "Timeline Drove Around">><</link>>
+* <<link "“We stopped for food first.”">><<set $timeline to "stopped_for_food">><<set $suspicion += 1>><<goto "Timeline Food Stop">><</link>>
+<<else>>
+Voss allows the silence to stretch.
+
+“Maria called you after you left the party.”
+
+The ticking behind you becomes impossible to ignore.
+
+* <<link "Remain silent.">><<set $timeline to "remained_silent">><<goto "Timeline Silence">><</link>>
+* <<link "“Have you spoken to Maria?”">><<set $timeline to "asked_about_maria">><<goto "Timeline Ask Maria">><</link>>
+* <<link "“She calls me all the time.”">><<set $timeline to "admitted_call">><<set $suspicion += 1>><<goto "Timeline Admitted Call">><</link>>
+<</if>>
+
+:: Timeline With Maria
+“Together,” Voss repeats.
+
+She finally writes something in the folder.
+
+“All evening?”
+
+“All evening.”
+
+[[Continue->Hidden Car]]
+
+:: Timeline Television
+“What did you watch?”
+
+The question is too quick. You name the first programme that comes to mind.
+
+Voss writes it down without looking at you.
+
+[[Continue->Hidden Car]]
+
+:: Timeline Early Bed
+“What time?”
+
+“Before midnight.”
+
+Voss checks the broken clock, as though it might help her.
+
+[[Continue->Hidden Car]]
+
+:: Timeline Rowan Capable
+“Drunk, but capable,” Voss repeats.
+
+She writes down your exact words.
+
+[[Continue->Hidden Car]]
+
+:: Timeline Rowan Sober
+“Three witnesses disagree.”
+
+Voss closes the folder again.
+
+[[Continue->Hidden Car]]
+
+:: Timeline Switched Drivers
+“A moment ago, Rowan was driving.”
+
+“He was. Later.”
+
+“So your first answer was incomplete.”
+
+[[Continue->Hidden Car]]
+
+:: Timeline Straight Home
+It is the closest thing to the truth you have said.
+
+Voss studies your face, perhaps recognizing the relief.
+
+[[Continue->Hidden Car]]
+
+:: Timeline Drove Around
+“Which roads?”
+
+You give her a route that avoids the place you cannot name.
+
+[[Continue->Hidden Car]]
+
+:: Timeline Food Stop
+“Where?”
+
+You name somewhere open late and immediately wonder how many cameras it has.
+
+[[Continue->Hidden Car]]
+
+:: Timeline Silence
+You say nothing.
+
+Voss waits until the silence belongs to her again.
+
+[[Continue->Hidden Car]]
+
+:: Timeline Ask Maria
+“Have you spoken to Maria?”
+
+Voss gives you a small, unreadable smile.
+
+“I asked about the call.”
+
+[[Continue->Hidden Car]]
+
+:: Timeline Admitted Call
+“She calls me all the time.”
+
+“Then you remember receiving it.”
+
+You have answered a question Voss never asked.
 
 [[Continue->Hidden Car]]
 
