@@ -24,6 +24,8 @@
   --line: #354149;
   --paper: #090b0d;
   --warning: #a94442;
+  --voss: #91b0bd;
+  --alex: #d6ad79;
 }
 
 html, body {
@@ -88,6 +90,25 @@ body {
   gap: 1rem;
 }
 
+.sound-toggle {
+  padding: .28rem .48rem;
+  border: 1px solid #52616a;
+  background: #12191d;
+  color: var(--muted);
+  font: inherit;
+  font-size: .9em;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.sound-toggle:hover,
+.sound-toggle:focus-visible {
+  border-color: var(--ink);
+  color: var(--ink);
+  outline: 2px solid transparent;
+}
+
 .case-clock {
   color: var(--ink);
   letter-spacing: .2em;
@@ -127,6 +148,28 @@ body {
   border: 1px solid var(--line);
   background: var(--steel);
   box-shadow: 0 1.4rem 4rem rgba(0, 0, 0, .28);
+  transition: border-color 280ms ease, box-shadow 280ms ease, background 280ms ease;
+}
+
+body.suspicion-elevated #story {
+  border-color: #614145;
+  box-shadow: 0 1.4rem 4rem rgba(76, 22, 23, .2);
+}
+
+body.suspicion-critical #story {
+  border-color: #854346;
+  background: #181518;
+  box-shadow: 0 1.4rem 4rem rgba(111, 29, 30, .32);
+}
+
+body.flashback-mode #story {
+  border-color: #526773;
+  background: #121a20;
+}
+
+body.ending-mode #story {
+  border-color: #6e655c;
+  background: #151618;
 }
 
 .passage {
@@ -146,8 +189,9 @@ body {
   padding: 0;
 }
 
-/* Added by StoryScript to existing quoted prose. */
-.passage p.dialogue-line {
+/* Added by StoryScript to explicit speaker annotations in the story. */
+.passage p.dialogue-line,
+.passage .spoken-line {
   margin: 1.2rem 0;
   padding: .7rem .95rem .75rem 1.05rem;
   border-left: 2px solid #68747a;
@@ -156,7 +200,8 @@ body {
   font-family: Georgia, "Times New Roman", serif;
 }
 
-.passage p.dialogue-line::before {
+.passage p.dialogue-line::before,
+.passage .spoken-line::before {
   content: "TRANSCRIPT";
   display: block;
   margin-bottom: .25rem;
@@ -165,6 +210,32 @@ body {
   font-size: .62rem;
   letter-spacing: .16em;
 }
+
+.passage p.dialogue-line.speaker-voss,
+.passage .spoken-line.speaker-voss {
+  border-left-color: var(--voss);
+  color: #c8d9df;
+}
+
+.passage p.dialogue-line.speaker-voss::before,
+.passage .spoken-line.speaker-voss::before {
+  content: "VOSS";
+  color: var(--voss);
+}
+
+.passage p.dialogue-line.speaker-alex,
+.passage .spoken-line.speaker-alex {
+  border-left-color: var(--alex);
+  color: #e4d1b7;
+}
+
+.passage p.dialogue-line.speaker-alex::before,
+.passage .spoken-line.speaker-alex::before {
+  content: "ALEX";
+  color: var(--alex);
+}
+
+.spoken-line { display: block; }
 
 .passage p.inner-thought {
   margin-left: .75rem;
@@ -220,6 +291,11 @@ body {
   color: var(--warning);
 }
 
+.passage a.link-internal.alex-choice {
+  border-left: 2px solid var(--alex);
+  color: #e4d1b7;
+}
+
 .passage .evidence,
 .passage .usb,
 .passage .headlight {
@@ -251,32 +327,172 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .passage { animation: none; }
-  .passage a.link-internal { transition: none; }
+  .passage a.link-internal, #story { transition: none; }
 }
 
 :: StoryScript [script]
-/* Annotate existing prose after each passage renders; this keeps the story
-   source untouched while making quoted dialogue and italic thoughts legible
-   as parts of the interrogation record. */
+/* Keep the persistent status UI in sync with SugarCube state and use explicit
+   source annotations for speakers, rather than trying to infer a speaker from
+   the wording of a line.  The procedural score is intentionally generated in
+   browser: no external or copyrighted audio assets are loaded. */
 (function () {
+  var score = { context: null, master: null, nodes: [], timer: null, enabled: false };
+  var endings = ['The Perfect Lie', 'Perfect Lie:', 'False Witness', 'False Witness:', 'The Driver', 'The Driver:', 'Caught in the Lie', 'Caught in the Lie:'];
+
+  function suspicion() {
+    var value = Number(SugarCube.State.variables.suspicion);
+    return Math.max(0, Math.min(5, Number.isFinite(value) ? value : 0));
+  }
+
+  function mode() {
+    var title = SugarCube.State.passage || '';
+    if (title.indexOf('Flashback') === 0) return 'flashback';
+    if (endings.indexOf(title) !== -1) return 'ending';
+    return suspicion() >= 4 ? 'critical' : suspicion() >= 2 ? 'tense' : 'low';
+  }
+
+  function stopScore() {
+    if (score.timer) window.clearInterval(score.timer);
+    score.timer = null;
+    score.nodes.forEach(function (node) {
+      try { node.stop(); } catch (ignore) {}
+      try { node.disconnect(); } catch (ignore) {}
+    });
+    score.nodes = [];
+  }
+
+  function oscillator(frequency, type, volume) {
+    var oscillatorNode = score.context.createOscillator();
+    var gain = score.context.createGain();
+    oscillatorNode.type = type;
+    oscillatorNode.frequency.value = frequency;
+    gain.gain.value = volume;
+    oscillatorNode.connect(gain).connect(score.master);
+    oscillatorNode.start();
+    score.nodes.push(oscillatorNode, gain);
+    return { oscillator: oscillatorNode, gain: gain };
+  }
+
+  function accent(frequency, duration, volume) {
+    if (!score.context) return;
+    var now = score.context.currentTime;
+    var tone = score.context.createOscillator();
+    var gain = score.context.createGain();
+    tone.type = 'triangle';
+    tone.frequency.setValueAtTime(frequency, now);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(volume, now + .018);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+    tone.connect(gain).connect(score.master);
+    tone.start(now);
+    tone.stop(now + duration + .03);
+  }
+
+  function buildScore() {
+    stopScore();
+    if (!score.enabled || !score.context || score.context.state !== 'running') return;
+    var current = mode();
+    score.master.gain.setTargetAtTime(.32, score.context.currentTime, .08);
+    if (current === 'flashback') {
+      oscillator(48, 'sine', .035);
+      oscillator(151, 'sine', .009).oscillator.detune.value = -9;
+      oscillator(157, 'sine', .008).oscillator.detune.value = 11;
+      score.timer = window.setInterval(function () { accent(295, .22, .016); }, 1250);
+    } else if (current === 'ending') {
+      oscillator(55, 'sine', .035);
+      oscillator(82.4, 'sine', .014);
+      score.timer = window.setInterval(function () { accent(110, .55, .022); }, 1850);
+    } else {
+      var level = current === 'critical' ? 2 : current === 'tense' ? 1 : 0;
+      oscillator(level === 2 ? 46 : 52, 'sine', .04);
+      oscillator(level === 0 ? 78 : 98, 'triangle', level === 2 ? .018 : .012);
+      if (level > 0) oscillator(level === 2 ? 146 : 122, 'sine', level === 2 ? .012 : .007);
+      score.timer = window.setInterval(function () {
+        accent(level === 2 ? 82 : 72, level === 2 ? .11 : .16, level === 2 ? .032 : .02);
+      }, level === 2 ? 470 : level === 1 ? 780 : 1320);
+    }
+  }
+
+  function toggleScore() {
+    var Button = document.getElementById('sound-toggle');
+    if (!score.context) {
+      var AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) {
+        if (Button) Button.textContent = 'Music unavailable';
+        return;
+      }
+      score.context = new AudioContext();
+      score.master = score.context.createGain();
+      score.master.gain.value = .0001;
+      score.master.connect(score.context.destination);
+    }
+    score.enabled = !score.enabled;
+    if (score.enabled) {
+      score.context.resume().then(buildScore);
+    } else {
+      stopScore();
+    }
+    if (Button) {
+      Button.textContent = score.enabled ? 'Music: On' : 'Music: Off';
+      Button.setAttribute('aria-pressed', String(score.enabled));
+    }
+  }
+
+  function updateStatus() {
+    var value = suspicion();
+    var meter = document.querySelector('#story-caption .suspicion-meter');
+    if (meter) {
+      meter.setAttribute('aria-label', 'Suspicion: ' + value + ' out of 5');
+      meter.querySelectorAll('.suspicion-block').forEach(function (block, index) {
+        block.classList.toggle('is-active', index < value);
+      });
+    }
+    document.body.classList.toggle('suspicion-elevated', value >= 2);
+    document.body.classList.toggle('suspicion-critical', value >= 4);
+    document.body.classList.toggle('flashback-mode', mode() === 'flashback');
+    document.body.classList.toggle('ending-mode', mode() === 'ending');
+    if (score.enabled) buildScore();
+  }
+
   function classifyPassage() {
     var passage = document.querySelector('#passages .passage');
     if (!passage) return;
 
     passage.querySelectorAll('p').forEach(function (paragraph) {
       var text = paragraph.textContent.trim();
-      if (/^[“\"]/.test(text)) {
+      var speaker = paragraph.querySelector('[data-speaker]');
+      if (speaker) {
+        paragraph.classList.add('dialogue-line');
+        paragraph.classList.add('speaker-' + speaker.getAttribute('data-speaker'));
+      } else if (/^[“\"]/.test(text)) {
         paragraph.classList.add('dialogue-line');
       } else if (paragraph.querySelector('em')) {
         paragraph.classList.add('inner-thought');
       }
     });
+
+    passage.querySelectorAll('.spoken-line[data-speaker]').forEach(function (line) {
+      line.classList.add('dialogue-line', 'speaker-' + line.getAttribute('data-speaker'));
+    });
+
+    passage.querySelectorAll('a.link-internal').forEach(function (choice) {
+      if (/^[“\"]/.test(choice.textContent.trim())) choice.classList.add('alex-choice');
+    });
   }
 
-  $(document).on(':passageend.dialogueStyle', classifyPassage);
+  $(document).on(':passageend.caseUi', function () {
+    classifyPassage();
+    updateStatus();
+  });
+  $(document).on('click.caseUi', '#sound-toggle', toggleScore);
+  $(document).on(':storyready.caseUi', updateStatus);
+  window.addEventListener('pagehide', stopScore);
 }());
 
 :: StoryInit
+<<include "Reset Case">>
+
+:: Reset Case
 <<set $suspicion to 0>>
 <<set $alibi to "">>
 <<set $timeline to "">>
@@ -298,8 +514,8 @@ body {
 <<set $detectedFakeStatement to false>>
 
 :: StoryCaption
-<<set $suspicion to Math.min(5, $suspicion)>><div class="case-status"><span class="case-clock">02:17 AM</span><span class="suspicion-label">Suspicion <span class="suspicion-meter" aria-label="Suspicion: <<= $suspicion>> out of 5">
-<span class="suspicion-block <<= $suspicion >= 1 ? 'is-active' : ''>>"></span><span class="suspicion-block <<= $suspicion >= 2 ? 'is-active' : ''>>"></span><span class="suspicion-block <<= $suspicion >= 3 ? 'is-active' : ''>>"></span><span class="suspicion-block <<= $suspicion >= 4 ? 'is-active' : ''>>"></span><span class="suspicion-block <<= $suspicion >= 5 ? 'is-active' : ''>>"></span></span></span></div>
+<div class="case-status"><span class="case-clock">02:17 AM</span><span class="suspicion-label">Suspicion <span class="suspicion-meter" aria-label="Suspicion: 0 out of 5">
+<span class="suspicion-block"></span><span class="suspicion-block"></span><span class="suspicion-block"></span><span class="suspicion-block"></span><span class="suspicion-block"></span></span></span><button id="sound-toggle" class="sound-toggle" type="button" aria-pressed="false" aria-label="Toggle procedural music">Music: Off</button></div>
 
 :: Start
 ''2:17 AM''
@@ -367,7 +583,7 @@ The handle turns while you are still crouched beside the chair.
 
 Voss enters carrying a thin folder. Her eyes move from you to the marks in the vinyl.
 
-“Find what you were looking for?”
+<span class="spoken-line" data-speaker="voss">“Find what you were looking for?”</span>
 
 She sits before you can answer.
 <<elseif $inspectedClock>>
@@ -375,24 +591,24 @@ The handle turns while you are standing beneath the clock.
 
 Voss follows your gaze as she enters.
 
-“It hasn’t worked in years,” she says.
+<span class="spoken-line" data-speaker="voss">“It hasn’t worked in years,” she says.</span>
 
 The ticking continues behind you.
 
-Voss smiles. “People still trust it.”
+Voss smiles. <span class="spoken-line" data-speaker="voss">“People still trust it.”</span>
 <<else>>
 You are still sitting with your hands flat on the table when the handle turns.
 
 Voss enters carrying a thin folder. She studies you before sitting.
 
-“Thirty-seven seconds,” she says. “Most people touch something.”
+<span class="spoken-line" data-speaker="voss">“Thirty-seven seconds,” she says. “Most people touch something.”</span>
 
 You give her nothing.
 <</if>>
 
 Voss opens the folder.
 
-“Thank you for waiting, Alex. I know it’s late.”
+<span class="spoken-line" data-speaker="voss">“Thank you for waiting, Alex. I know it’s late.”</span>
 
 <<include "First Question">>
 
@@ -402,7 +618,7 @@ Voss waits. The question has not changed.
 <<else>>
 She places both hands on the table.
 
-“Tell me about Tuesday night.”
+<span class="spoken-line" data-speaker="voss">“Tell me about Tuesday night.”</span>
 <</if>>
 * <<link "“I stayed home.”">><<set $alibi to "stayed_home">><<goto "Stayed Home">><</link>>
 * <<link "“I was with Rowan. Rowan was driving.”">><<set $alibi to "rowan_drove">><<goto "Rowan Drove">><</link>>
@@ -413,65 +629,65 @@ She places both hands on the table.
 * <<link "“I’m not answering any questions.”">><<set $alibi to "refused">><<goto "Refuse Account">><</link>>
 
 :: Challenge Voss
-“Am I being charged?”
+<span class="spoken-line" data-speaker="alex">“Am I being charged?”</span>
 
-“No.” Voss does not hesitate. “You are free to leave.”
+<span class="spoken-line" data-speaker="voss">“No.” Voss does not hesitate. “You are free to leave.”</span>
 
 She is sitting between you and the door.
 
-“But if you walk out,” she continues, “the next conversation will be different.”
+<span class="spoken-line" data-speaker="voss">“But if you walk out,” she continues, “the next conversation will be different.”</span>
 
 <<set $askedAboutCharge to true>>
 
 [[Return to her question->First Question]]
 
 :: Stayed Home
-“I stayed home.”
+<span class="spoken-line" data-speaker="alex">“I stayed home.”</span>
 
-“Alone?”
+<span class="spoken-line" data-speaker="voss">“Alone?”</span>
 
-“Yes.”
+<span class="spoken-line" data-speaker="alex">“Yes.”</span>
 
 Voss writes nothing down.
 
-“Then this should be quick.”
+<span class="spoken-line" data-speaker="voss">“Then this should be quick.”</span>
 
 [[Continue->Timeline]]
 
 :: Rowan Drove
-“I was with Rowan. Rowan was driving.”
+<span class="spoken-line" data-speaker="alex">“I was with Rowan. Rowan was driving.”</span>
 
-“Your car?”
+<span class="spoken-line" data-speaker="voss">“Your car?”</span>
 
-You hesitate for half a second. “Yes.”
+You hesitate for half a second. <span class="spoken-line" data-speaker="alex">“Yes.”</span>
 
 Voss finally opens the folder.
 
-“Where did Rowan take you?”
+<span class="spoken-line" data-speaker="voss">“Where did Rowan take you?”</span>
 
 [[Answer her->Timeline]]
 
 :: Alex Drove
-“I was with Rowan. I was driving.”
+<span class="spoken-line" data-speaker="alex">“I was with Rowan. I was driving.”</span>
 
 Voss watches you for a moment.
 
-“Where?”
+<span class="spoken-line" data-speaker="voss">“Where?”</span>
 
 One word. No surprise. No accusation.
 
 [[Answer her->Timeline]]
 
 :: Refuse Account
-“I’m not answering any questions.”
+<span class="spoken-line" data-speaker="alex">“I’m not answering any questions.”</span>
 
-“That is your right.” Voss folds her hands over the unopened folder. “It is also an answer.”
+<span class="spoken-line" data-speaker="voss">“That is your right.” Voss folds her hands over the unopened folder. “It is also an answer.”</span>
 
 [[Remain silent->Timeline]]
 
 :: Timeline
 <<if $alibi is "stayed_home">>
-“What did you do at home?” Voss asks. “You and Maria.”
+<span class="spoken-line" data-speaker="voss">“What did you do at home?” Voss asks. “You and Maria.”</span>
 
 * <<link "“We spent the evening together.”">><<set $timeline to "with_maria">><<goto "Timeline With Maria">><</link>>
 * <<link "“Maria went to bed. I watched television.”">><<set $timeline to "watched_tv">><<goto "Timeline Television">><</link>>
@@ -479,13 +695,13 @@ One word. No surprise. No accusation.
 <<elseif $alibi is "rowan_drove">>
 Voss tilts her head.
 
-“Three people watched Rowan stumble on the way out. But you let him drive your car?”
+<span class="spoken-line" data-speaker="voss">“Three people watched Rowan stumble on the way out. But you let him drive your car?”</span>
 
 * <<link "“He was drunk, not incapable.”">><<set $timeline to "rowan_capable">><<set $suspicion += 1>><<goto "Timeline Rowan Capable">><</link>>
 * <<link "“He seemed sober when we left.”">><<set $timeline to "rowan_seemed_sober">><<set $suspicion += 1>><<goto "Timeline Rowan Sober">><</link>>
 * <<link "“I drove first. We switched later.”">><<set $timeline to "switched_drivers">><<set $suspicion += 2>><<goto "Timeline Switched Drivers">><</link>>
 <<elseif $alibi is "alex_drove">>
-“Where did you take Rowan?”
+<span class="spoken-line" data-speaker="voss">“Where did you take Rowan?”</span>
 
 * <<link "“Straight home.”">><<set $timeline to "straight_home">><<goto "Timeline Straight Home">><</link>>
 * <<link "“We drove around until he felt better.”">><<set $timeline to "drove_around">><<set $suspicion += 1>><<goto "Timeline Drove Around">><</link>>
@@ -493,7 +709,7 @@ Voss tilts her head.
 <<else>>
 Voss allows the silence to stretch.
 
-“Maria called you after you left the party.”
+<span class="spoken-line" data-speaker="voss">“Maria called you after you left the party.”</span>
 
 The ticking behind you becomes impossible to ignore.
 
@@ -503,18 +719,18 @@ The ticking behind you becomes impossible to ignore.
 <</if>>
 
 :: Timeline With Maria
-“Together,” Voss repeats.
+<span class="spoken-line" data-speaker="voss">“Together,” Voss repeats.</span>
 
 She finally writes something in the folder.
 
-“All evening?”
+<span class="spoken-line" data-speaker="voss">“All evening?”</span>
 
-“All evening.”
+<span class="spoken-line" data-speaker="alex">“All evening.”</span>
 
 [[Continue->Hidden Car]]
 
 :: Timeline Television
-“What did you watch?”
+<span class="spoken-line" data-speaker="voss">“What did you watch?”</span>
 
 The question is too quick. You name the first programme that comes to mind.
 
@@ -523,34 +739,34 @@ Voss writes it down without looking at you.
 [[Continue->Hidden Car]]
 
 :: Timeline Early Bed
-“What time?”
+<span class="spoken-line" data-speaker="voss">“What time?”</span>
 
-“Before midnight.”
+<span class="spoken-line" data-speaker="alex">“Before midnight.”</span>
 
 Voss checks the broken clock, as though it might help her.
 
 [[Continue->Hidden Car]]
 
 :: Timeline Rowan Capable
-“Drunk, but capable,” Voss repeats.
+<span class="spoken-line" data-speaker="voss">“Drunk, but capable,” Voss repeats.</span>
 
 She writes down your exact words.
 
 [[Continue->Hidden Car]]
 
 :: Timeline Rowan Sober
-“Three witnesses disagree.”
+<span class="spoken-line" data-speaker="voss">“Three witnesses disagree.”</span>
 
 Voss closes the folder again.
 
 [[Continue->Hidden Car]]
 
 :: Timeline Switched Drivers
-“A moment ago, Rowan was driving.”
+<span class="spoken-line" data-speaker="voss">“A moment ago, Rowan was driving.”</span>
 
-“He was. Later.”
+<span class="spoken-line" data-speaker="alex">“He was. Later.”</span>
 
-“So your first answer was incomplete.”
+<span class="spoken-line" data-speaker="voss">“So your first answer was incomplete.”</span>
 
 [[Continue->Hidden Car]]
 
@@ -562,7 +778,7 @@ Voss studies your face, perhaps recognizing the relief.
 [[Continue->Hidden Car]]
 
 :: Timeline Drove Around
-“Which roads?”
+<span class="spoken-line" data-speaker="voss">“Which roads?”</span>
 
 You give her a route that avoids the place you cannot name.
 
@@ -583,18 +799,18 @@ Voss waits until the silence belongs to her again.
 [[Continue->Hidden Car]]
 
 :: Timeline Ask Maria
-“Have you spoken to Maria?”
+<span class="spoken-line" data-speaker="alex">“Have you spoken to Maria?”</span>
 
 Voss gives you a small, unreadable smile.
 
-“I asked about the call.”
+<span class="spoken-line" data-speaker="voss">“I asked about the call.”</span>
 
 [[Continue->Hidden Car]]
 
 :: Timeline Admitted Call
-“She calls me all the time.”
+<span class="spoken-line" data-speaker="alex">“She calls me all the time.”</span>
 
-“Then you remember receiving it.”
+<span class="spoken-line" data-speaker="voss">“Then you remember receiving it.”</span>
 
 You have answered a question Voss never asked.
 
@@ -603,11 +819,11 @@ You have answered a question Voss never asked.
 :: Hidden Car
 Voss turns to a clean page in the folder.
 
-“Let’s talk about your car.”
+<span class="spoken-line" data-speaker="voss">“Let’s talk about your car.”</span>
 
-“Why?”
+<span class="spoken-line" data-speaker="alex">“Why?”</span>
 
-“It hasn’t been seen since Tuesday night.” She raises her eyes to yours. “Where is it, Alex?”
+<span class="spoken-line" data-speaker="voss">“It hasn’t been seen since Tuesday night.” She raises her eyes to yours. “Where is it, Alex?”</span>
 
 * <<link "“In my garage. It wouldn’t start Wednesday morning.”">><<set $carStory to "mechanical_problem">><<goto "Car Mechanical Problem">><</link>>
 * <<link "“I haven’t needed to drive anywhere.”">><<set $carStory to "not_needed">><<set $suspicion += 1>><<goto "Car Not Needed">><</link>>
@@ -615,33 +831,33 @@ Voss turns to a clean page in the folder.
 * <<link "Refuse to answer.">><<set $carStory to "refused">><<goto "Car Refused">><</link>>
 
 :: Car Mechanical Problem
-“It’s in my garage. It wouldn’t start Wednesday morning.”
+<span class="spoken-line" data-speaker="alex">“It’s in my garage. It wouldn’t start Wednesday morning.”</span>
 
-“Has a mechanic looked at it?”
+<span class="spoken-line" data-speaker="voss">“Has a mechanic looked at it?”</span>
 
-“Not yet.”
+<span class="spoken-line" data-speaker="alex">“Not yet.”</span>
 
-“Of course.”
+<span class="spoken-line" data-speaker="voss">“Of course.”</span>
 
 [[Continue->Headlight Fragment]]
 
 :: Car Not Needed
-“I haven’t needed to drive anywhere.”
+<span class="spoken-line" data-speaker="alex">“I haven’t needed to drive anywhere.”</span>
 
-“You used it every day last week.”
+<span class="spoken-line" data-speaker="voss">“You used it every day last week.”</span>
 
 Voss does not explain how she knows that.
 
 [[Continue->Headlight Fragment]]
 
 :: Car Asked Why
-“Why are you asking about my car?”
+<span class="spoken-line" data-speaker="alex">“Why are you asking about my car?”</span>
 
-“Because a car like yours may have been involved in something.”
+<span class="spoken-line" data-speaker="voss">“Because a car like yours may have been involved in something.”</span>
 
 She opens the folder.
 
-“I’m trying to determine whether it was yours.”
+<span class="spoken-line" data-speaker="voss">“I’m trying to determine whether it was yours.”</span>
 
 [[Continue->Headlight Fragment]]
 
@@ -650,14 +866,14 @@ You say nothing.
 
 Voss nods as though you have confirmed something.
 
-“Then I’ll show you why I’m asking.”
+<span class="spoken-line" data-speaker="voss">“Then I’ll show you why I’m asking.”</span>
 
 [[Continue->Headlight Fragment]]
 
 :: Headlight Fragment
 Voss removes a transparent evidence bag. A jagged piece of headlight rests inside.
 
-“This was recovered from the road. Same manufacturer, model and production year as your car.”
+<span class="spoken-line" data-speaker="voss">“This was recovered from the road. Same manufacturer, model and production year as your car.”</span>
 
 It could be yours.
 
@@ -671,31 +887,31 @@ But she cannot know that yet.
 * <<link "Say nothing.">><<set $fragmentResponse to "silent">><<goto "Fragment Silence">><</link>>
 
 :: Fragment Common Part
-“That could belong to thousands of cars.”
+<span class="spoken-line" data-speaker="alex">“That could belong to thousands of cars.”</span>
 
-“Correct.”
+<span class="spoken-line" data-speaker="voss">“Correct.”</span>
 
 Voss returns the bag to the folder.
 
-“That is why I’m still asking questions.”
+<span class="spoken-line" data-speaker="voss">“That is why I’m still asking questions.”</span>
 
 [[Continue->The Pedestrian]]
 
 :: Fragment Intact Lie
-“My headlights are intact.”
+<span class="spoken-line" data-speaker="alex">“My headlights are intact.”</span>
 
 Voss becomes very still.
 
-“I didn’t ask whether they were damaged.”
+<span class="spoken-line" data-speaker="voss">“I didn’t ask whether they were damaged.”</span>
 
 [[Continue->The Pedestrian]]
 
 :: Fragment Partial Admission
-“I might have clipped something. It wasn’t a person.”
+<span class="spoken-line" data-speaker="alex">“I might have clipped something. It wasn’t a person.”</span>
 
 Voss leans forward for the first time.
 
-“What did you clip?”
+<span class="spoken-line" data-speaker="voss">“What did you clip?”</span>
 
 You cannot answer without creating another lie.
 
@@ -711,11 +927,11 @@ Voss waits. When you give her nothing, she puts it away.
 :: The Pedestrian
 Voss rests one hand on the closed folder.
 
-“The pedestrian died before anyone called for help.”
+<span class="spoken-line" data-speaker="voss">“The pedestrian died before anyone called for help.”</span>
 
 She watches your face.
 
-“Whoever drove away left him alone on that road.”
+<span class="spoken-line" data-speaker="voss">“Whoever drove away left him alone on that road.”</span>
 
 * <<link "“Oh God…”">><<set $deathResponse to "shocked">><<goto "Death Shock">><</link>>
 * <<link "“That wasn’t me.”">><<set $deathResponse to "denied_early">><<set $suspicion += 1>><<goto "Death Denial">><</link>>
@@ -723,25 +939,25 @@ She watches your face.
 * <<link "Say nothing.">><<set $deathResponse to "silent">><<goto "Death Silence">><</link>>
 
 :: Death Shock
-“Oh God…”
+<span class="spoken-line" data-speaker="alex">“Oh God…”</span>
 
 You look down before your face can say anything else.
 
 [[Continue->Recording]]
 
 :: Death Denial
-“That wasn’t me.”
+<span class="spoken-line" data-speaker="alex">“That wasn’t me.”</span>
 
-“I didn’t say it was.”
+<span class="spoken-line" data-speaker="voss">“I didn’t say it was.”</span>
 
 The answer came too quickly. You know it. So does Voss.
 
 [[Continue->Recording]]
 
 :: Death Asked Why
-“Why are you telling me this?”
+<span class="spoken-line" data-speaker="alex">“Why are you telling me this?”</span>
 
-“Because you might know why nobody stopped.”
+<span class="spoken-line" data-speaker="voss">“Because you might know why nobody stopped.”</span>
 
 [[Continue->Recording]]
 
@@ -755,11 +971,11 @@ Voss waits a moment, then reaches into the folder.
 :: Recording
 Voss places a USB drive on the table.
 
-“A security camera recorded the collision.”
+<span class="spoken-line" data-speaker="voss">“A security camera recorded the collision.”</span>
 
 Your eyes settle on the drive.
 
-“It recorded the impact, the car stopping—and the driver leaving.”
+<span class="spoken-line" data-speaker="voss">“It recorded the impact, the car stopping—and the driver leaving.”</span>
 
 * <<link "“Can I… can I see it?”">><<set $recordingResponse to "asked_to_see">><<set $questionedRecording to true>><<goto "Recording Asked To See">><</link>>
 * <<link "“Does it show who was driving?”">><<set $recordingResponse to "asked_driver">><<set $suspicion += 1>><<goto "Recording Asked Driver">><</link>>
@@ -768,60 +984,60 @@ Your eyes settle on the drive.
 * <<link "“I don’t know what you want me to say.”">><<set $recordingResponse to "overwhelmed">><<goto "Recording Overwhelmed">><</link>>
 
 :: Recording Asked To See
-“Can I… can I see it?”
+<span class="spoken-line" data-speaker="alex">“Can I… can I see it?”</span>
 
 Voss covers the USB drive with two fingers.
 
-“Not tonight. It is evidence.”
+<span class="spoken-line" data-speaker="voss">“Not tonight. It is evidence.”</span>
 
 She slips it back into the folder before you can ask again.
 
 [[Continue->Rowan Memory]]
 
 :: Recording Asked Driver
-“Does it show who was driving?”
+<span class="spoken-line" data-speaker="alex">“Does it show who was driving?”</span>
 
 Voss studies you.
 
-“It shows enough.”
+<span class="spoken-line" data-speaker="voss">“It shows enough.”</span>
 
 That is not an answer.
 
 [[Continue->Rowan Memory]]
 
 :: Recording Inconsistency
-“I don’t understand. You said it was only a car like mine.”
+<span class="spoken-line" data-speaker="alex">“I don’t understand. You said it was only a car like mine.”</span>
 
-“And now I’m giving you a chance to explain why it was there.”
+<span class="spoken-line" data-speaker="voss">“And now I’m giving you a chance to explain why it was there.”</span>
 
 She has stepped around the inconsistency without answering it.
 
 [[Continue->Rowan Memory]]
 
 :: Recording Asked Rowan
-“What did Rowan say?”
+<span class="spoken-line" data-speaker="alex">“What did Rowan say?”</span>
 
 Voss watches the fear arrive before you can hide it.
 
-“Enough to be frightened.”
+<span class="spoken-line" data-speaker="voss">“Enough to be frightened.”</span>
 
 [[Continue->Rowan Memory]]
 
 :: Recording Overwhelmed
-“I don’t know what you want me to say.”
+<span class="spoken-line" data-speaker="alex">“I don’t know what you want me to say.”</span>
 
-“The truth would be a start.”
+<span class="spoken-line" data-speaker="voss">“The truth would be a start.”</span>
 
 [[Continue->Rowan Memory]]
 
 :: Rowan Memory
 Voss closes the folder with the USB drive inside.
 
-“Rowan remembers the impact. He remembers asking what happened.”
+<span class="spoken-line" data-speaker="voss">“Rowan remembers the impact. He remembers asking what happened.”</span>
 
 She pauses.
 
-“He remembers you saying it was a pothole.”
+<span class="spoken-line" data-speaker="voss">“He remembers you saying it was a pothole.”</span>
 
 <<if $inspectedChair>>
 The warm chair. The fresh crescents pressed into the vinyl.
@@ -832,7 +1048,7 @@ Rowan really was here.
 <<if $alibi is "rowan_drove">>
 Voss leans closer.
 
-“Which is strange, because you told me Rowan was driving.”
+<span class="spoken-line" data-speaker="voss">“Which is strange, because you told me Rowan was driving.”</span>
 
 <<set $suspicion += 1>>
 <</if>>
@@ -852,6 +1068,9 @@ Her name fills the dashboard screen.
 
 ''MARIA CALLING.''
 
+[[Let it ring->Flashback Call]]
+
+:: Flashback Call
 Rowan stirs. “You should get that.”
 
 The words tighten something inside you.
@@ -860,6 +1079,9 @@ The words tighten something inside you.
 
 The phone continues to ring.
 
+[[Look down->Flashback Impact]]
+
+:: Flashback Impact
 You look down to silence it.
 
 The impact snaps your eyes back to the road.
@@ -870,8 +1092,11 @@ You stop.
 
 For one second, neither of you moves.
 
-“What was that?” Rowan mumbles.
+Rowan mumbles, “What was that?”
 
+[[Decide what to do->Flashback Decision]]
+
+:: Flashback Decision
 You could open the door. You could look. You could call someone.
 
 Instead, one thought pushes through everything else.
@@ -880,19 +1105,17 @@ Instead, one thought pushes through everything else.
 
 You tighten your hands around the wheel.
 
-“A pothole.”
+<span class="spoken-line" data-speaker="alex">“A pothole.”</span>
 
 “Sounded bad.”
 
-“It’s fine.”
+<span class="spoken-line" data-speaker="alex">“It’s fine.”</span>
 
-You press the accelerator.
-
-The dark road carries you away.
+You press the accelerator. The dark road carries you away.
 
 The ticking returns first. Then the table. Then Voss, watching you from the other side of it.
 
-“Where did you go just now?” she asks.
+<span class="spoken-line" data-speaker="voss">“Where did you go just now?” she asks.</span>
 
 [[Return to the room->Final Offer]]
 
@@ -903,15 +1126,15 @@ Voss studies you for a long time.
 
 She opens the folder one last time.
 
-“He asked whether he was driving.”
+<span class="spoken-line" data-speaker="voss">“He asked whether he was driving.”</span>
 
 Your stomach tightens.
 
-“He doesn’t know,” Voss says. “You do.”
+<span class="spoken-line" data-speaker="voss">“He doesn’t know,” Voss says. “You do.”</span>
 
 She pushes a blank statement across the table.
 
-“Tell me who was behind the wheel.”
+<span class="spoken-line" data-speaker="voss">“Tell me who was behind the wheel.”</span>
 
 * <<link "“Rowan wasn’t driving. I was.”">><<set $finalDecision to "confessed">><<goto "The Driver">><</link>>
 * <<link "“Maybe Rowan was driving. He was drunk. I don’t know.”">><<set $finalDecision to "framed_rowan">><<goto "Frame Rowan">><</link>>
@@ -964,11 +1187,11 @@ Voss looks at the folder, then at you.
 :: The Perfect Lie
 Voss removes the USB drive and headlight fragment from the folder.
 
-“A damaged car model. A dark recording. A passenger who cannot remember.”
+<span class="spoken-line" data-speaker="voss">“A damaged car model. A dark recording. A passenger who cannot remember.”</span>
 
 She sounds almost disappointed.
 
-“It is not enough.”
+<span class="spoken-line" data-speaker="voss">“It is not enough.”</span>
 
 You leave before she can change her mind.
 
@@ -982,8 +1205,14 @@ Rowan sends one message.
 
 You delete it without answering.
 
+[[Keep moving->Perfect Lie: Months]]
+
+:: Perfect Lie: Months
 Months pass. You sleep less and drink more. Every quiet room becomes that road. Every unanswered call sounds like Maria’s name on the dashboard.
 
+[[Drive until the streets are empty->Perfect Lie: Last Road]]
+
+:: Perfect Lie: Last Road
 One night, you drive after drinking until the streets are empty. A concrete pole appears beyond the windscreen.
 
 You have time to turn.
@@ -996,7 +1225,7 @@ The police describe it as a single-vehicle collision. Maria knows it was the las
 
 You evaded Voss, but not yourself.
 
-<<link "Play again">><<run Engine.restart()>><</link>>
+<<link "Play again">><<include "Reset Case">><<goto "Start">><</link>>
 
 :: False Witness
 You write slowly at first.
@@ -1009,6 +1238,9 @@ Voss reads the statement and asks you to sign it.
 
 You do.
 
+[[Leave the station->False Witness: Rowan]]
+
+:: False Witness: Rowan
 Outside the station, your phone vibrates.
 
 //Rowan: They keep asking if I was driving. I can’t remember. Please tell me.//
@@ -1021,16 +1253,19 @@ Your statement turns Rowan’s missing memory into the centre of the case. He is
 
 You remain free, but freedom becomes another room you cannot leave. You drink to silence Rowan’s messages, then to silence the fact that they have stopped.
 
+[[Read the last message->False Witness: Last Road]]
+
+:: False Witness: Last Road
 Months after his sentencing, your car leaves an empty road and strikes a pole. This time there is no passenger and nobody else to blame.
 
 ''FALSE WITNESS''
 
 You gave Rowan your guilt. It destroyed you both.
 
-<<link "Play again">><<run Engine.restart()>><</link>>
+<<link "Play again">><<include "Reset Case">><<goto "Start">><</link>>
 
 :: The Driver
-“Rowan wasn’t driving. I was.”
+<span class="spoken-line" data-speaker="alex">“Rowan wasn’t driving. I was.”</span>
 
 The words leave you with nothing left to hold together.
 
@@ -1044,16 +1279,19 @@ When you finish, the hidden ticking stops.
 The conversation was being recorded after all.
 <</if>>
 
-“I didn’t want one more thing to be my fault,” you say.
+<span class="spoken-line" data-speaker="alex">“I didn’t want one more thing to be my fault,” you say.</span>
 
 Voss closes the folder.
 
-“It already was.”
+<span class="spoken-line" data-speaker="voss">“It already was.”</span>
 
 You confess on the record and accept the sentence that follows.
 
 Prison is slow, difficult and stripped of every excuse. Maria ends the relationship. Your daughter grows up outside the walls without a father beside her.
 
+[[Accept the years->The Driver: Letters]]
+
+:: The Driver: Letters
 Years later, you begin answering her letters honestly. You cannot recover her childhood or the life Maria had to build alone. But, piece by piece, you recognize yourself again.
 
 When you eventually leave prison, nothing is repaired. You simply stop running from what you broke.
@@ -1062,7 +1300,7 @@ When you eventually leave prison, nothing is repaired. You simply stop running f
 
 The truth cost you your old life. It left you the possibility of becoming someone else.
 
-<<link "Play again">><<run Engine.restart()>><</link>>
+<<link "Play again">><<include "Reset Case">><<goto "Start">><</link>>
 
 :: Caught in the Lie
 Voss opens the folder and walks you through your own answers.
@@ -1071,12 +1309,15 @@ The party. The driver. Maria’s call. The hidden car. The headlight you claimed
 
 Each lie was small enough to survive alone. Together, they point in only one direction.
 
-“The recording never showed the driver,” Voss says. “You did that for me.”
+<span class="spoken-line" data-speaker="voss">“The recording never showed the driver,” Voss says. “You did that for me.”</span>
 
 The door opens behind you. This time, two uniformed officers are waiting outside.
 
 You continue denying everything through the trial and into prison. Without the lies, there is nothing left holding you together.
 
+[[Go with the officers->Caught in the Lie: Cell]]
+
+:: Caught in the Lie: Cell
 Months into your sentence, you die by suicide in your cell.
 
 Maria receives the news alone. Your daughter will know you only through the explanations other people choose to give her.
@@ -1085,4 +1326,4 @@ Maria receives the news alone. Your daughter will know you only through the expl
 
 You kept running until there was nowhere left to go.
 
-<<link "Play again">><<run Engine.restart()>><</link>>
+<<link "Play again">><<include "Reset Case">><<goto "Start">><</link>>
