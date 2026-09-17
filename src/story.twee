@@ -15,6 +15,8 @@
 <<set $alibi to "">>
 <<set $finalDecision to "">>
 <<set $inspectedCamera to false>>
+<<set $inspectedChair to false>>
+<<set $inspectedClock to false>>
 <<set $examinedPhoto to false>>
 <<set $questionedRecording to false>>
 <<set $discoveredCameraAngle to false>>
@@ -29,9 +31,54 @@ for Detective Mara Voss.
 [[Begin->Waiting Room]]
 
 :: Waiting Room
-Scenario 1 placeholder: explore the interview room before Voss arrives.
+The door closes behind you with a soft mechanical click.
 
-[[Continue->Initial Account]]
+The interview room contains a metal table, two chairs and a clock behind reinforced glass. Nothing else.
+
+The chair opposite yours is still warm.
+
+You keep your hand against its vinyl surface for a moment. Someone was sitting here recently. Voss did not mention another interview.
+
+Above the door, the clock reads ''2:17 AM''.
+
+You look away. Wait. Look back.
+
+''2:17 AM.''
+
+Its second hand twitches forward, then snaps back. Yet somewhere inside the wall, you can hear steady ticking.
+
+What do you do?
+
+* <<link "Examine the warm chair">><<set $inspectedChair to true>><<goto "Examine Chair">><</link>>
+* <<link "Study the malfunctioning clock">><<set $inspectedClock to true>><<goto "Study Clock">><</link>>
+* [[Sit down and touch nothing->Wait for Voss]]
+
+:: Examine Chair
+You crouch beside the chair.
+
+Four pale crescents mark the edge of the vinyl, pressed deep by fingernails. Fresh. Rowan leaves the same marks on your passenger door whenever fear takes hold.
+
+It could be coincidence.
+
+The handle turns before you can decide whether you believe that.
+
+[[Face Detective Voss->Initial Account]]
+
+:: Study Clock
+You step beneath the clock. The second hand jerks forward and snaps back again, trapped inside the same second.
+
+The ticking continues at a perfect, patient rhythm—but it is not coming from the clock. It is coming from somewhere behind you.
+
+The handle turns before you can locate it.
+
+[[Face Detective Voss->Initial Account]]
+
+:: Wait for Voss
+You sit with your hands flat on the table and give the room nothing.
+
+The clock continues failing above you. You count thirty-seven ticks before the handle turns.
+
+[[Face Detective Voss->Initial Account]]
 
 :: Initial Account
 Scenario 2 placeholder: establish whether Alex was with Rowan and who drove.
