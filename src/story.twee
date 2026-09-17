@@ -133,6 +133,47 @@ body {
   animation: passage-in 250ms ease-out both;
 }
 
+/* SugarCube renders choice markup as a list; the cards should read like a
+   clean stack of forms rather than a browser default list. */
+#passages ul {
+  list-style: none;
+  margin: 1.35rem 0 0;
+  padding: 0;
+}
+
+#passages li {
+  margin: 0;
+  padding: 0;
+}
+
+/* Added by StoryScript to existing quoted prose. */
+.passage p.dialogue-line {
+  margin: 1.2rem 0;
+  padding: .7rem .95rem .75rem 1.05rem;
+  border-left: 2px solid #68747a;
+  background: rgba(8, 12, 14, .42);
+  color: #e2ded4;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.passage p.dialogue-line::before {
+  content: "TRANSCRIPT";
+  display: block;
+  margin-bottom: .25rem;
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .62rem;
+  letter-spacing: .16em;
+}
+
+.passage p.inner-thought {
+  margin-left: .75rem;
+  padding-left: 1rem;
+  border-left: 1px solid #49545a;
+  color: #aeb5b6;
+  font-style: italic;
+}
+
 .passage > p:first-child:first-letter {
   color: #e8e4d9;
 }
@@ -212,6 +253,28 @@ body {
   .passage { animation: none; }
   .passage a.link-internal { transition: none; }
 }
+
+:: StoryScript [script]
+/* Annotate existing prose after each passage renders; this keeps the story
+   source untouched while making quoted dialogue and italic thoughts legible
+   as parts of the interrogation record. */
+(function () {
+  function classifyPassage() {
+    var passage = document.querySelector('#passages .passage');
+    if (!passage) return;
+
+    passage.querySelectorAll('p').forEach(function (paragraph) {
+      var text = paragraph.textContent.trim();
+      if (/^[“\"]/.test(text)) {
+        paragraph.classList.add('dialogue-line');
+      } else if (paragraph.querySelector('em')) {
+        paragraph.classList.add('inner-thought');
+      }
+    });
+  }
+
+  $(document).on(':passageend.dialogueStyle', classifyPassage);
+}());
 
 :: StoryInit
 <<set $suspicion to 0>>
