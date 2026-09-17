@@ -18,6 +18,7 @@
 <<set $inspectedChair to false>>
 <<set $inspectedClock to false>>
 <<set $composed to false>>
+<<set $askedAboutCharge to false>>
 <<set $examinedPhoto to false>>
 <<set $questionedRecording to false>>
 <<set $discoveredCameraAngle to false>>
@@ -82,9 +83,112 @@ The clock continues failing above you. You count thirty-seven ticks before the h
 [[Face Detective Voss->Initial Account]]
 
 :: Initial Account
-Scenario 2 placeholder: establish whether Alex was with Rowan and who drove.
+<<if $inspectedChair>>
+The handle turns while you are still crouched beside the chair.
+
+Voss enters carrying a thin folder. Her eyes move from you to the marks in the vinyl.
+
+“Find what you were looking for?”
+
+She sits before you can answer.
+<<elseif $inspectedClock>>
+The handle turns while you are standing beneath the clock.
+
+Voss follows your gaze as she enters.
+
+“It hasn’t worked in years,” she says.
+
+The ticking continues behind you.
+
+Voss smiles. “People still trust it.”
+<<else>>
+You are still sitting with your hands flat on the table when the handle turns.
+
+Voss enters carrying a thin folder. She studies you before sitting.
+
+“Thirty-seven seconds,” she says. “Most people touch something.”
+
+You give her nothing.
+<</if>>
+
+Voss opens the folder.
+
+“Thank you for waiting, Alex. I know it’s late.”
+
+<<include "First Question">>
+
+:: First Question
+<<if $askedAboutCharge>>
+Voss waits. The question has not changed.
+<<else>>
+She places both hands on the table.
+
+“Tell me about Tuesday night.”
+<</if>>
+* <<link "“I stayed home.”">><<set $alibi to "stayed_home">><<goto "Stayed Home">><</link>>
+* <<link "“I was with Rowan. Rowan was driving.”">><<set $alibi to "rowan_drove">><<goto "Rowan Drove">><</link>>
+* <<link "“I was with Rowan. I was driving.”">><<set $alibi to "alex_drove">><<goto "Alex Drove">><</link>>
+<<if not $askedAboutCharge>>
+* [[“Am I being charged?”->Challenge Voss]]
+<</if>>
+* <<link "“I’m not answering any questions.”">><<set $alibi to "refused">><<goto "Refuse Account">><</link>>
+
+:: Challenge Voss
+“Am I being charged?”
+
+“No.” Voss does not hesitate. “You are free to leave.”
+
+She is sitting between you and the door.
+
+“But if you walk out,” she continues, “the next conversation will be different.”
+
+<<set $askedAboutCharge to true>>
+
+[[Return to her question->First Question]]
+
+:: Stayed Home
+“I stayed home.”
+
+“Alone?”
+
+“Yes.”
+
+Voss writes nothing down.
+
+“Then this should be quick.”
 
 [[Continue->Timeline]]
+
+:: Rowan Drove
+“I was with Rowan. Rowan was driving.”
+
+“Your car?”
+
+You hesitate for half a second. “Yes.”
+
+Voss finally opens the folder.
+
+“Where did Rowan take you?”
+
+[[Answer her->Timeline]]
+
+:: Alex Drove
+“I was with Rowan. I was driving.”
+
+Voss watches you for a moment.
+
+“Where?”
+
+One word. No surprise. No accusation.
+
+[[Answer her->Timeline]]
+
+:: Refuse Account
+“I’m not answering any questions.”
+
+“That is your right.” Voss folds her hands over the unopened folder. “It is also an answer.”
+
+[[Remain silent->Timeline]]
 
 :: Timeline
 Scenario 3 placeholder: commit to the details of an alibi.
