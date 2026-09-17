@@ -20,6 +20,12 @@
 - When Rowan asks about the impact, Alex tells him they hit a pothole. Rowan's intoxication leaves him with only that uncertain version of events.
 - The victim remains unnamed because the story focuses on Alex's choices and his relationships with Maria and Rowan.
 
+## Title and clock
+
+- The interrogation takes place at 2:17 AM, which gives the game its title.
+- The time is intentionally arbitrary. It is not the collision time, evidence, or a police trick.
+- The malfunctioning clock creates atmosphere. Inspecting it only helps Alex notice the suspicious ticking elsewhere in the room.
+
 ## Core state
 
 - `suspicion`: visible pressure meter from 0 to 5
