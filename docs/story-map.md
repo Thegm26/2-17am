@@ -33,6 +33,8 @@
 - Maria is angry that Alex left her to attend the party, so they do not speak that night.
 - The next morning, Alex tells Maria the evening was uneventful and tries to brush the subject aside.
 - Alex does not tell Maria about the collision.
+- Alex discovers the cracked headlight and dent, wipes away what he can, and hides the car in the garage without repairing it.
+- Alex tells Maria the car has a mechanical problem and postpones deciding what to do with it.
 
 ## Core state
 
@@ -46,7 +48,7 @@
 1. Waiting Room — explore the room before Voss arrives.
 2. Initial Account — establish whether Alex was with Rowan and who drove.
 3. Timeline — commit to the details of an alibi.
-4. Missing Car — explain why Alex's damaged car disappeared.
+4. Hidden Car — explain why Alex's car has remained unseen since the party.
 5. The Pedestrian — confront the fact that the unknown person died.
 6. Recording — challenge or accept Voss's claim that the collision was filmed.
 7. Flashback — reveal what actually happened on the road.
