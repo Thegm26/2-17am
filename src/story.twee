@@ -17,6 +17,7 @@
 <<set $inspectedCamera to false>>
 <<set $inspectedChair to false>>
 <<set $inspectedClock to false>>
+<<set $composed to false>>
 <<set $examinedPhoto to false>>
 <<set $questionedRecording to false>>
 <<set $discoveredCameraAngle to false>>
@@ -51,7 +52,7 @@ What do you do?
 
 * <<link "Examine the warm chair">><<set $inspectedChair to true>><<goto "Examine Chair">><</link>>
 * <<link "Study the malfunctioning clock">><<set $inspectedClock to true>><<goto "Study Clock">><</link>>
-* [[Sit down and touch nothing->Wait for Voss]]
+* <<link "Sit down and touch nothing">><<set $composed to true>><<goto "Wait for Voss">><</link>>
 
 :: Examine Chair
 You crouch beside the chair.
