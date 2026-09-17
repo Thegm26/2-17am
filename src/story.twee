@@ -10,6 +10,209 @@
   "zoom": 1
 }
 
+:: StoryStylesheet [stylesheet]
+/*
+   A restrained bureaucratic/noir treatment: paper, steel and one warning
+   colour.  All typefaces are local system fallbacks so the exported file
+   remains self-contained.
+*/
+:root {
+  --ink: #d8d5cc;
+  --muted: #8b9298;
+  --steel: #11161a;
+  --steel-light: #202a30;
+  --line: #354149;
+  --paper: #090b0d;
+  --warning: #a94442;
+}
+
+html, body {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+body {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.08rem;
+  line-height: 1.72;
+}
+
+#ui-bar {
+  box-sizing: border-box;
+  width: 100%;
+  height: auto;
+  min-height: 3.4rem;
+  padding: .7rem max(1rem, calc((100vw - 700px) / 2));
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: #0d1114;
+  color: var(--muted);
+  position: relative;
+  left: auto !important;
+  top: auto;
+}
+
+#ui-bar.stowed {
+  left: auto !important;
+}
+
+#ui-bar-toggle,
+#ui-bar-tray,
+#story-title,
+#story-author,
+#menu {
+  display: none !important;
+}
+
+#ui-bar-body,
+#story-caption {
+  height: auto;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  display: block;
+}
+
+#story-caption {
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .72rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.case-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.case-clock {
+  color: var(--ink);
+  letter-spacing: .2em;
+}
+
+.suspicion-label {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.suspicion-meter {
+  display: inline-flex;
+  gap: .22rem;
+  margin-left: .45rem;
+  vertical-align: middle;
+}
+
+.suspicion-block {
+  width: .62rem;
+  height: .62rem;
+  border: 1px solid #56616a;
+  background: transparent;
+  display: inline-block;
+}
+
+.suspicion-block.is-active {
+  border-color: var(--warning);
+  background: var(--warning);
+  box-shadow: 0 0 5px rgba(169, 68, 66, .32);
+}
+
+#story {
+  box-sizing: border-box;
+  width: min(700px, calc(100% - 2rem));
+  margin: 3.5rem auto 5rem;
+  padding: 2.7rem clamp(1.2rem, 5vw, 3.2rem) 3.2rem;
+  border: 1px solid var(--line);
+  background: var(--steel);
+  box-shadow: 0 1.4rem 4rem rgba(0, 0, 0, .28);
+}
+
+.passage {
+  animation: passage-in 250ms ease-out both;
+}
+
+.passage > p:first-child:first-letter {
+  color: #e8e4d9;
+}
+
+.passage em {
+  color: #adb5b8;
+}
+
+.passage strong {
+  color: var(--ink);
+  letter-spacing: .02em;
+}
+
+.passage a.link-internal {
+  display: block;
+  margin: .85rem 0;
+  padding: .72rem 1rem;
+  border: 1px solid #59656c;
+  background: #161e23;
+  color: var(--ink);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .84rem;
+  line-height: 1.45;
+  text-decoration: none;
+  transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
+}
+
+.passage a.link-internal::before {
+  content: "[  ] ";
+  color: var(--muted);
+}
+
+.passage a.link-internal:hover,
+.passage a.link-internal:focus-visible {
+  border-color: var(--ink);
+  background: var(--steel-light);
+  color: #fff;
+  outline: 2px solid transparent;
+}
+
+.passage a.link-internal:hover::before,
+.passage a.link-internal:focus-visible::before {
+  content: "[OK] ";
+  color: var(--warning);
+}
+
+.passage .evidence,
+.passage .usb,
+.passage .headlight {
+  display: inline-block;
+  padding: .05rem .35rem;
+  border: 1px solid var(--line);
+  color: #d2d7d5;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .88em;
+  letter-spacing: .02em;
+}
+
+.passage .evidence { background: #172026; }
+.passage .usb { border-style: dashed; background: #141c20; }
+.passage .headlight { color: #c8b7a2; background: #211f1c; }
+
+@keyframes passage-in {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 540px) {
+  body { font-size: 1rem; }
+  #ui-bar { padding: .65rem 1rem; }
+  .case-status { align-items: flex-start; flex-direction: column; gap: .35rem; }
+  #story { width: calc(100% - 1rem); margin: 1rem auto 2rem; padding: 1.5rem 1rem 2rem; }
+  .passage a.link-internal { padding: .85rem .8rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .passage { animation: none; }
+  .passage a.link-internal { transition: none; }
+}
+
 :: StoryInit
 <<set $suspicion to 0>>
 <<set $alibi to "">>
@@ -32,7 +235,8 @@
 <<set $detectedFakeStatement to false>>
 
 :: StoryCaption
-<<set $suspicion to Math.min(5, $suspicion)>>''Suspicion:'' $suspicion / 5
+<<set $suspicion to Math.min(5, $suspicion)>><div class="case-status"><span class="case-clock">02:17 AM</span><span class="suspicion-label">Suspicion <span class="suspicion-meter" aria-label="Suspicion: <<= $suspicion>> out of 5">
+<span class="suspicion-block <<= $suspicion >= 1 ? 'is-active' : ''>>"></span><span class="suspicion-block <<= $suspicion >= 2 ? 'is-active' : ''>>"></span><span class="suspicion-block <<= $suspicion >= 3 ? 'is-active' : ''>>"></span><span class="suspicion-block <<= $suspicion >= 4 ? 'is-active' : ''>>"></span><span class="suspicion-block <<= $suspicion >= 5 ? 'is-active' : ''>>"></span></span></span></div>
 
 :: Start
 ''2:17 AM''
