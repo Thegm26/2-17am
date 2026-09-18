@@ -36,7 +36,7 @@ html, body {
 body {
   font-family: Georgia, "Times New Roman", serif;
   font-size: 1.08rem;
-  line-height: 1.72;
+  line-height: 1.48;
 }
 
 #ui-bar {
@@ -143,8 +143,8 @@ body {
 #story {
   box-sizing: border-box;
   width: min(700px, calc(100% - 2rem));
-  margin: 3.5rem auto 5rem;
-  padding: 2.7rem clamp(1.2rem, 5vw, 3.2rem) 3.2rem;
+  margin: 1.5rem auto 2.5rem;
+  padding: 1.35rem clamp(1.2rem, 5vw, 3.2rem) 1.7rem;
   border: 1px solid var(--line);
   background: var(--steel);
   box-shadow: 0 1.4rem 4rem rgba(0, 0, 0, .28);
@@ -180,7 +180,7 @@ body.ending-mode #story {
    clean stack of forms rather than a browser default list. */
 #passages ul {
   list-style: none;
-  margin: 1.35rem 0 0;
+  margin: .8rem 0 0;
   padding: 0;
 }
 
@@ -189,10 +189,14 @@ body.ending-mode #story {
   padding: 0;
 }
 
+.passage > p {
+  margin: .62rem 0;
+}
+
 /* Added by StoryScript to explicit speaker annotations in the story. */
 .passage p.dialogue-line {
-  margin: 1.2rem 0;
-  padding: .7rem .95rem .75rem 1.05rem;
+  margin: .52rem 0;
+  padding: .42rem .7rem .45rem .78rem;
   border-left: 2px solid #68747a;
   background: rgba(8, 12, 14, .42);
   color: #e2ded4;
@@ -202,7 +206,7 @@ body.ending-mode #story {
 .passage p.dialogue-line::before {
   content: "TRANSCRIPT";
   display: block;
-  margin-bottom: .25rem;
+  margin-bottom: .1rem;
   color: var(--muted);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: .62rem;
@@ -231,12 +235,64 @@ body.ending-mode #story {
 
 .spoken-line { display: block; }
 
+/* Mixed narration/speech keeps its line compact without turning the whole
+   paragraph into a transcript card. */
+.passage .spoken-line.dialogue-line {
+  margin: .42rem 0;
+  padding: .35rem .65rem .38rem .72rem;
+}
+
+.passage .spoken-line.dialogue-line::before { margin-bottom: .05rem; }
+
+.passage p.dialogue-line.speaker-rowan,
+.passage .spoken-line.dialogue-line.speaker-rowan {
+  border-left-color: #a69a86;
+  color: #d0c7b8;
+}
+
+.passage p.dialogue-line.speaker-rowan::before,
+.passage .spoken-line.dialogue-line.speaker-rowan::before {
+  content: "ROWAN";
+  color: #a69a86;
+}
+
 .passage p.inner-thought {
-  margin-left: .75rem;
-  padding-left: 1rem;
+  margin: .48rem 0 .48rem .55rem;
+  padding: .12rem 0 .12rem .72rem;
   border-left: 1px solid #49545a;
   color: #aeb5b6;
   font-style: italic;
+}
+
+.passage .thought-line.inner-thought {
+  display: block;
+  margin: .38rem 0;
+  padding: .1rem 0 .1rem .65rem;
+  border-left: 1px solid #49545a;
+  color: #aeb5b6;
+  font-style: italic;
+}
+
+.passage .message-line {
+  display: block;
+  margin: .4rem 0;
+  padding-left: .65rem;
+  border-left: 1px dashed #596268;
+  color: #aeb5b6;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .88em;
+}
+
+.passage p.inner-thought::before,
+.passage .thought-line.inner-thought::before {
+  content: "THOUGHT";
+  display: block;
+  margin-bottom: .06rem;
+  color: #858d90;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .58rem;
+  font-style: normal;
+  letter-spacing: .14em;
 }
 
 .passage > p:first-child:first-letter {
@@ -461,10 +517,11 @@ body.ending-mode #story {
 
     passage.querySelectorAll('[data-speaker]').forEach(function (line) {
       var paragraph = line.closest('p');
-      var container = paragraph && paragraph.querySelectorAll('[data-speaker]').length === 1
+      var isOnlyContent = paragraph && paragraph.textContent.trim() === line.textContent.trim();
+      var container = isOnlyContent && paragraph.querySelectorAll('[data-speaker]').length === 1
         ? paragraph
         : line;
-      line.classList.remove('dialogue-line', 'speaker-voss', 'speaker-alex');
+      line.classList.remove('dialogue-line', 'speaker-voss', 'speaker-alex', 'speaker-rowan');
       if (container !== line) line.classList.remove('spoken-line');
       container.classList.add('dialogue-line', 'speaker-' + line.getAttribute('data-speaker'));
       if (container === line) container.classList.add('spoken-line');
@@ -472,11 +529,13 @@ body.ending-mode #story {
 
     passage.querySelectorAll('p').forEach(function (paragraph) {
       var text = paragraph.textContent.trim();
-      if (!paragraph.querySelector('[data-speaker]') && /^[“\"]/.test(text)) {
+      if (!paragraph.querySelector('.thought-line') && !paragraph.querySelector('[data-speaker]') && /^[“\"]/.test(text)) {
         paragraph.classList.add('dialogue-line');
-      } else if (paragraph.querySelector('em')) {
-        paragraph.classList.add('inner-thought');
       }
+    });
+
+    passage.querySelectorAll('.thought-line').forEach(function (thought) {
+      thought.classList.add('inner-thought');
     });
 
     passage.querySelectorAll('a.link-internal').forEach(function (choice) {
@@ -527,7 +586,7 @@ body.ending-mode #story {
 Two nights after the collision, Alex Vale sits beneath a dead camera and waits
 for Detective Mara Voss.
 
-//Content note: fatal collision, alcohol misuse and suicide.//
+<span class="content-note">Content note: fatal collision, alcohol misuse and suicide.</span>
 
 [[Begin->Waiting Room]]
 
@@ -1062,7 +1121,7 @@ Voss leans closer.
 :: Flashback
 The word pulls you out of the room.
 
-//Pothole.//
+<span class="thought-line">Pothole.</span>
 
 Rowan is folded against the passenger window, eyes half-closed, too drunk to hold his head upright for long.
 
@@ -1075,11 +1134,11 @@ Her name fills the dashboard screen.
 [[Let it ring->Flashback Call]]
 
 :: Flashback Call
-Rowan stirs. “You should get that.”
+Rowan stirs. <span class="spoken-line" data-speaker="rowan">“You should get that.”</span>
 
 The words tighten something inside you.
 
-//Is this what my life is going to be now? Every minute. Every decision. Everyone needing something from me?//
+<span class="thought-line">Is this what my life is going to be now? Every minute. Every decision. Everyone needing something from me?</span>
 
 The phone continues to ring.
 
@@ -1096,7 +1155,7 @@ You stop.
 
 For one second, neither of you moves.
 
-Rowan mumbles, “What was that?”
+Rowan mumbles, <span class="spoken-line" data-speaker="rowan">“What was that?”</span>
 
 [[Decide what to do->Flashback Decision]]
 
@@ -1105,13 +1164,13 @@ You could open the door. You could look. You could call someone.
 
 Instead, one thought pushes through everything else.
 
-//Fuck. Now I have to deal with this as well?//
+<span class="thought-line">Fuck. Now I have to deal with this as well?</span>
 
 You tighten your hands around the wheel.
 
 <span class="spoken-line" data-speaker="alex">“A pothole.”</span>
 
-“Sounded bad.”
+<span class="spoken-line" data-speaker="rowan">“Sounded bad.”</span>
 
 <span class="spoken-line" data-speaker="alex">“It’s fine.”</span>
 
@@ -1205,7 +1264,7 @@ By sunrise, the car is somewhere else.
 
 Rowan sends one message.
 
-//Was I driving?//
+<span class="message-line">Was I driving?</span>
 
 You delete it without answering.
 
@@ -1247,11 +1306,11 @@ You do.
 :: False Witness: Rowan
 Outside the station, your phone vibrates.
 
-//Rowan: They keep asking if I was driving. I can’t remember. Please tell me.//
+<span class="message-line">Rowan: They keep asking if I was driving. I can’t remember. Please tell me.</span>
 
 You type one word.
 
-//Yes.//
+<span class="message-line">Yes.</span>
 
 Your statement turns Rowan’s missing memory into the centre of the case. He is convicted and receives a sentence long enough to erase the life he knew.
 
