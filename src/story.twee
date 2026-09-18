@@ -176,6 +176,21 @@ body.ending-mode #story {
   animation: passage-in 250ms ease-out both;
 }
 
+/* SugarCube renders source line breaks as literal <br> elements.  StoryScript
+   converts blank-line stacks into these controlled beats. */
+#passages .passage > br {
+  display: none;
+}
+
+.passage .story-beat {
+  display: block;
+  height: .38rem;
+}
+
+.passage .story-beat:has(+ .dialogue-line) {
+  height: .18rem;
+}
+
 /* SugarCube renders choice markup as a list; the cards should read like a
    clean stack of forms rather than a browser default list. */
 #passages ul {
@@ -190,14 +205,14 @@ body.ending-mode #story {
 }
 
 .passage > p {
-  margin: .62rem 0;
+  margin: .38rem 0;
 }
 
 /* Added by StoryScript to explicit speaker annotations in the story. */
 .passage p.dialogue-line,
 .passage .spoken-line.dialogue-line {
-  margin: .52rem 0;
-  padding: .42rem .7rem .45rem .78rem;
+  margin: .28rem 0;
+  padding: .32rem .65rem .35rem .72rem;
   border-left: 2px solid #68747a;
   background: rgba(8, 12, 14, .42);
   color: #e2ded4;
@@ -208,7 +223,7 @@ body.ending-mode #story {
 .passage .spoken-line.dialogue-line::before {
   content: "TRANSCRIPT";
   display: block;
-  margin-bottom: .1rem;
+  margin-bottom: .05rem;
   color: var(--muted);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: .62rem;
@@ -244,11 +259,22 @@ body.ending-mode #story {
 /* Mixed narration/speech keeps its line compact without turning the whole
    paragraph into a transcript card. */
 .passage .spoken-line.dialogue-line {
-  margin: .42rem 0;
-  padding: .35rem .65rem .38rem .72rem;
+  margin: .3rem 0;
+  padding: .3rem .62rem .32rem .7rem;
 }
 
 .passage .spoken-line.dialogue-line::before { margin-bottom: .05rem; }
+
+/* An action that introduces a line should read as one beat, not as two
+   separated paragraphs.  The selector is applied after speaker lines have
+   been classified by StoryScript. */
+.passage > p:not(.dialogue-line):has(+ p.dialogue-line) {
+  margin-bottom: .18rem;
+}
+
+.passage > p.dialogue-line + p:not(.dialogue-line) {
+  margin-top: .22rem;
+}
 
 .passage p.dialogue-line.speaker-rowan,
 .passage .spoken-line.dialogue-line.speaker-rowan {
@@ -263,7 +289,7 @@ body.ending-mode #story {
 }
 
 .passage p.inner-thought {
-  margin: .48rem 0 .48rem .55rem;
+  margin: .34rem 0 .34rem .55rem;
   padding: .12rem 0 .12rem .72rem;
   border-left: 1px solid #49545a;
   color: #aeb5b6;
@@ -272,7 +298,7 @@ body.ending-mode #story {
 
 .passage .thought-line.inner-thought {
   display: block;
-  margin: .38rem 0;
+  margin: .32rem 0;
   padding: .1rem 0 .1rem .65rem;
   border-left: 1px solid #49545a;
   color: #aeb5b6;
@@ -281,7 +307,7 @@ body.ending-mode #story {
 
 .passage .message-line {
   display: block;
-  margin: .4rem 0;
+  margin: .32rem 0;
   padding-left: .65rem;
   border-left: 1px dashed #596268;
   color: #aeb5b6;
@@ -316,8 +342,10 @@ body.ending-mode #story {
 
 .passage a.link-internal {
   display: block;
-  margin: .85rem 0;
-  padding: .72rem 1rem;
+  margin: .48rem 0;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: .65rem .9rem;
   border: 1px solid #59656c;
   background: #161e23;
   color: var(--ink);
@@ -521,6 +549,30 @@ body.ending-mode #story {
     var passage = document.querySelector('#passages .passage');
     if (!passage) return;
 
+    /* Two or more source breaks represent one paragraph boundary.  Replace
+       the stack so macro/include whitespace cannot create visual voids. */
+    var breaks = [];
+    function collapseBreaks() {
+      if (breaks.length > 1) {
+        var beat = document.createElement('span');
+        beat.className = 'story-beat';
+        breaks[0].replaceWith(beat);
+        breaks.slice(1).forEach(function (lineBreak) { lineBreak.remove(); });
+      } else if (breaks.length === 1) {
+        breaks[0].remove();
+      }
+      breaks = [];
+    }
+
+    Array.from(passage.childNodes).forEach(function (node) {
+      if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'BR') {
+        breaks.push(node);
+      } else if (node.nodeType !== Node.TEXT_NODE || node.textContent.trim()) {
+        collapseBreaks();
+      }
+    });
+    collapseBreaks();
+
     passage.querySelectorAll('[data-speaker]').forEach(function (line) {
       var paragraph = line.closest('p');
       var isOnlyContent = paragraph && paragraph.textContent.trim() === line.textContent.trim();
@@ -650,30 +702,24 @@ The handle turns while you are still crouched beside the chair.
 Voss enters carrying a thin folder. Her eyes move from you to the marks in the vinyl.
 
 <span class="spoken-line" data-speaker="voss">“Find what you were looking for?”</span>
-
 She sits before you can answer.
 <<elseif $inspectedClock>>
 The handle turns while you are standing beneath the clock.
 
 Voss follows your gaze as she enters.
-
-<span class="spoken-line" data-speaker="voss">“It hasn’t worked in years,” she says.</span>
-
-The ticking continues behind you.
-
-Voss smiles. <span class="spoken-line" data-speaker="voss">“People still trust it.”</span>
+<span class="spoken-line" data-speaker="voss">“It hasn’t worked in years.”</span>
+The ticking continues behind you. Voss smiles.
+<span class="spoken-line" data-speaker="voss">“People still trust it.”</span>
 <<else>>
 You are still sitting with your hands flat on the table when the handle turns.
 
 Voss enters carrying a thin folder. She studies you before sitting.
 
-<span class="spoken-line" data-speaker="voss">“Thirty-seven seconds,” she says. “Most people touch something.”</span>
-
+<span class="spoken-line" data-speaker="voss">“Thirty-seven seconds. Most people touch something.”</span>
 You give her nothing.
 <</if>>
 
 Voss opens the folder.
-
 <span class="spoken-line" data-speaker="voss">“Thank you for waiting, Alex. I know it’s late.”</span>
 
 <<include "First Question">>
@@ -683,7 +729,6 @@ Voss opens the folder.
 Voss waits. The question has not changed.
 <<else>>
 She places both hands on the table.
-
 <span class="spoken-line" data-speaker="voss">“Tell me about Tuesday night.”</span>
 <</if>>
 * <<link "“I stayed home.”">><<set $alibi to "stayed_home">><<goto "Stayed Home">><</link>>
@@ -696,12 +741,10 @@ She places both hands on the table.
 
 :: Challenge Voss
 <span class="spoken-line" data-speaker="alex">“Am I being charged?”</span>
-
-<span class="spoken-line" data-speaker="voss">“No.” Voss does not hesitate. “You are free to leave.”</span>
-
+Voss does not hesitate.
+<span class="spoken-line" data-speaker="voss">“No. You are free to leave.”</span>
 She is sitting between you and the door.
-
-<span class="spoken-line" data-speaker="voss">“But if you walk out,” she continues, “the next conversation will be different.”</span>
+<span class="spoken-line" data-speaker="voss">“But if you walk out, the next conversation will be different.”</span>
 
 <<set $askedAboutCharge to true>>
 
@@ -725,7 +768,8 @@ Voss writes nothing down.
 
 <span class="spoken-line" data-speaker="voss">“Your car?”</span>
 
-You hesitate for half a second. <span class="spoken-line" data-speaker="alex">“Yes.”</span>
+You hesitate for half a second.
+<span class="spoken-line" data-speaker="alex">“Yes.”</span>
 
 Voss finally opens the folder.
 
@@ -747,13 +791,14 @@ One word. No surprise. No accusation.
 :: Refuse Account
 <span class="spoken-line" data-speaker="alex">“I’m not answering any questions.”</span>
 
-<span class="spoken-line" data-speaker="voss">“That is your right.” Voss folds her hands over the unopened folder. “It is also an answer.”</span>
+Voss folds her hands over the unopened folder.
+<span class="spoken-line" data-speaker="voss">“That is your right. It is also an answer.”</span>
 
 [[Remain silent->Timeline]]
 
 :: Timeline
 <<if $alibi is "stayed_home">>
-<span class="spoken-line" data-speaker="voss">“What did you do at home?” Voss asks. “You and Maria.”</span>
+<span class="spoken-line" data-speaker="voss">“What did you do at home? You and Maria.”</span>
 
 * <<link "“We spent the evening together.”">><<set $timeline to "with_maria">><<goto "Timeline With Maria">><</link>>
 * <<link "“Maria went to bed. I watched television.”">><<set $timeline to "watched_tv">><<goto "Timeline Television">><</link>>
@@ -785,7 +830,7 @@ The ticking behind you becomes impossible to ignore.
 <</if>>
 
 :: Timeline With Maria
-<span class="spoken-line" data-speaker="voss">“Together,” Voss repeats.</span>
+<span class="spoken-line" data-speaker="voss">“Together.”</span>
 
 She finally writes something in the folder.
 
@@ -814,7 +859,7 @@ Voss checks the broken clock, as though it might help her.
 [[Continue->Hidden Car]]
 
 :: Timeline Rowan Capable
-<span class="spoken-line" data-speaker="voss">“Drunk, but capable,” Voss repeats.</span>
+<span class="spoken-line" data-speaker="voss">“Drunk, but capable.”</span>
 
 She writes down your exact words.
 
@@ -851,7 +896,7 @@ You give her a route that avoids the place you cannot name.
 [[Continue->Hidden Car]]
 
 :: Timeline Food Stop
-“Where?”
+<span class="spoken-line" data-speaker="voss">“Where?”</span>
 
 You name somewhere open late and immediately wonder how many cameras it has.
 
@@ -889,7 +934,9 @@ Voss turns to a clean page in the folder.
 
 <span class="spoken-line" data-speaker="alex">“Why?”</span>
 
-<span class="spoken-line" data-speaker="voss">“It hasn’t been seen since Tuesday night.” She raises her eyes to yours. “Where is it, Alex?”</span>
+<span class="spoken-line" data-speaker="voss">“It hasn’t been seen since Tuesday night.”</span>
+She raises her eyes to yours.
+<span class="spoken-line" data-speaker="voss">“Where is it, Alex?”</span>
 
 * <<link "“In my garage. It wouldn’t start Wednesday morning.”">><<set $carStory to "mechanical_problem">><<goto "Car Mechanical Problem">><</link>>
 * <<link "“I haven’t needed to drive anywhere.”">><<set $carStory to "not_needed">><<set $suspicion += 1>><<goto "Car Not Needed">><</link>>
@@ -1135,7 +1182,8 @@ Her name fills the dashboard screen.
 [[Let it ring->Flashback Call]]
 
 :: Flashback Call
-Rowan stirs. <span class="spoken-line" data-speaker="rowan">“You should get that.”</span>
+Rowan stirs.
+<span class="spoken-line" data-speaker="rowan">“You should get that.”</span>
 
 The words tighten something inside you.
 
@@ -1156,7 +1204,8 @@ You stop.
 
 For one second, neither of you moves.
 
-Rowan mumbles, <span class="spoken-line" data-speaker="rowan">“What was that?”</span>
+Rowan mumbles.
+<span class="spoken-line" data-speaker="rowan">“What was that?”</span>
 
 [[Decide what to do->Flashback Decision]]
 
@@ -1179,7 +1228,7 @@ You press the accelerator. The dark road carries you away.
 
 The ticking returns first. Then the table. Then Voss, watching you from the other side of it.
 
-<span class="spoken-line" data-speaker="voss">“Where did you go just now?” she asks.</span>
+<span class="spoken-line" data-speaker="voss">“Where did you go just now?”</span>
 
 [[Return to the room->Final Offer]]
 
@@ -1194,7 +1243,7 @@ She opens the folder one last time.
 
 Your stomach tightens.
 
-<span class="spoken-line" data-speaker="voss">“He doesn’t know,” Voss says. “You do.”</span>
+<span class="spoken-line" data-speaker="voss">“He doesn’t know. You do.”</span>
 
 She pushes a blank statement across the table.
 
@@ -1239,7 +1288,7 @@ You look at the blank statement and say nothing.
 Voss looks at the folder, then at you.
 
 <<if $suspicion lte 2>>
-<span class="spoken-line" data-speaker="voss">“Yes,” she says at last. “Tonight.”</span>
+<span class="spoken-line" data-speaker="voss">“Yes. Tonight.”</span>
 
 [[Leave the room->The Perfect Lie]]
 <<else>>
@@ -1339,7 +1388,7 @@ When you finish, the hidden ticking stops.
 The conversation was being recorded after all.
 <</if>>
 
-<span class="spoken-line" data-speaker="alex">“I didn’t want one more thing to be my fault,” you say.</span>
+<span class="spoken-line" data-speaker="alex">“I didn’t want one more thing to be my fault.”</span>
 
 Voss closes the folder.
 
@@ -1367,7 +1416,7 @@ The party. The driver. Maria’s call. The hidden car. The headlight you claimed
 
 Each lie was small enough to survive alone. Together, they point in only one direction.
 
-<span class="spoken-line" data-speaker="voss">“The recording never showed the driver,” Voss says. “You did that for me.”</span>
+<span class="spoken-line" data-speaker="voss">“The recording never showed the driver. You did that for me.”</span>
 
 The door opens behind you. This time, two uniformed officers are waiting outside.
 
