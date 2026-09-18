@@ -1,5 +1,7 @@
 # 2:17 AM
 
+![2:17 AM cover artwork](assets/cover.png)
+
 A tense, choice-driven Twine thriller created for the UCA Twine Launch Week
 Game Jam 26/27 theme **Evasion**.
 
