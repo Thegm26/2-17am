@@ -194,7 +194,8 @@ body.ending-mode #story {
 }
 
 /* Added by StoryScript to explicit speaker annotations in the story. */
-.passage p.dialogue-line {
+.passage p.dialogue-line,
+.passage .spoken-line.dialogue-line {
   margin: .52rem 0;
   padding: .42rem .7rem .45rem .78rem;
   border-left: 2px solid #68747a;
@@ -203,7 +204,8 @@ body.ending-mode #story {
   font-family: Georgia, "Times New Roman", serif;
 }
 
-.passage p.dialogue-line::before {
+.passage p.dialogue-line::before,
+.passage .spoken-line.dialogue-line::before {
   content: "TRANSCRIPT";
   display: block;
   margin-bottom: .1rem;
@@ -213,22 +215,26 @@ body.ending-mode #story {
   letter-spacing: .16em;
 }
 
-.passage p.dialogue-line.speaker-voss {
+.passage p.dialogue-line.speaker-voss,
+.passage .spoken-line.dialogue-line.speaker-voss {
   border-left-color: var(--voss);
   color: #c8d9df;
 }
 
-.passage p.dialogue-line.speaker-voss::before {
+.passage p.dialogue-line.speaker-voss::before,
+.passage .spoken-line.dialogue-line.speaker-voss::before {
   content: "VOSS";
   color: var(--voss);
 }
 
-.passage p.dialogue-line.speaker-alex {
+.passage p.dialogue-line.speaker-alex,
+.passage .spoken-line.dialogue-line.speaker-alex {
   border-left-color: var(--alex);
   color: #e4d1b7;
 }
 
-.passage p.dialogue-line.speaker-alex::before {
+.passage p.dialogue-line.speaker-alex::before,
+.passage .spoken-line.dialogue-line.speaker-alex::before {
   content: "ALEX";
   color: var(--alex);
 }
