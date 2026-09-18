@@ -190,8 +190,7 @@ body.ending-mode #story {
 }
 
 /* Added by StoryScript to explicit speaker annotations in the story. */
-.passage p.dialogue-line,
-.passage .spoken-line {
+.passage p.dialogue-line {
   margin: 1.2rem 0;
   padding: .7rem .95rem .75rem 1.05rem;
   border-left: 2px solid #68747a;
@@ -200,8 +199,7 @@ body.ending-mode #story {
   font-family: Georgia, "Times New Roman", serif;
 }
 
-.passage p.dialogue-line::before,
-.passage .spoken-line::before {
+.passage p.dialogue-line::before {
   content: "TRANSCRIPT";
   display: block;
   margin-bottom: .25rem;
@@ -211,26 +209,22 @@ body.ending-mode #story {
   letter-spacing: .16em;
 }
 
-.passage p.dialogue-line.speaker-voss,
-.passage .spoken-line.speaker-voss {
+.passage p.dialogue-line.speaker-voss {
   border-left-color: var(--voss);
   color: #c8d9df;
 }
 
-.passage p.dialogue-line.speaker-voss::before,
-.passage .spoken-line.speaker-voss::before {
+.passage p.dialogue-line.speaker-voss::before {
   content: "VOSS";
   color: var(--voss);
 }
 
-.passage p.dialogue-line.speaker-alex,
-.passage .spoken-line.speaker-alex {
+.passage p.dialogue-line.speaker-alex {
   border-left-color: var(--alex);
   color: #e4d1b7;
 }
 
-.passage p.dialogue-line.speaker-alex::before,
-.passage .spoken-line.speaker-alex::before {
+.passage p.dialogue-line.speaker-alex::before {
   content: "ALEX";
   color: var(--alex);
 }
@@ -337,7 +331,12 @@ body.ending-mode #story {
    browser: no external or copyrighted audio assets are loaded. */
 (function () {
   var score = { context: null, master: null, nodes: [], timer: null, enabled: false };
-  var endings = ['The Perfect Lie', 'Perfect Lie:', 'False Witness', 'False Witness:', 'The Driver', 'The Driver:', 'Caught in the Lie', 'Caught in the Lie:'];
+  var endings = [
+    'The Perfect Lie', 'Perfect Lie:',
+    'False Witness', 'False Witness:',
+    'The Driver', 'The Driver:',
+    'Caught in the Lie', 'Caught in the Lie:'
+  ];
 
   function suspicion() {
     var value = Number(SugarCube.State.variables.suspicion);
@@ -347,7 +346,9 @@ body.ending-mode #story {
   function mode() {
     var title = SugarCube.State.passage || '';
     if (title.indexOf('Flashback') === 0) return 'flashback';
-    if (endings.indexOf(title) !== -1) return 'ending';
+    if (endings.some(function (ending) {
+      return title.startsWith(ending);
+    })) return 'ending';
     return suspicion() >= 4 ? 'critical' : suspicion() >= 2 ? 'tense' : 'low';
   }
 
@@ -458,21 +459,24 @@ body.ending-mode #story {
     var passage = document.querySelector('#passages .passage');
     if (!passage) return;
 
+    passage.querySelectorAll('[data-speaker]').forEach(function (line) {
+      var paragraph = line.closest('p');
+      var container = paragraph && paragraph.querySelectorAll('[data-speaker]').length === 1
+        ? paragraph
+        : line;
+      line.classList.remove('dialogue-line', 'speaker-voss', 'speaker-alex');
+      if (container !== line) line.classList.remove('spoken-line');
+      container.classList.add('dialogue-line', 'speaker-' + line.getAttribute('data-speaker'));
+      if (container === line) container.classList.add('spoken-line');
+    });
+
     passage.querySelectorAll('p').forEach(function (paragraph) {
       var text = paragraph.textContent.trim();
-      var speaker = paragraph.querySelector('[data-speaker]');
-      if (speaker) {
-        paragraph.classList.add('dialogue-line');
-        paragraph.classList.add('speaker-' + speaker.getAttribute('data-speaker'));
-      } else if (/^[“\"]/.test(text)) {
+      if (!paragraph.querySelector('[data-speaker]') && /^[“\"]/.test(text)) {
         paragraph.classList.add('dialogue-line');
       } else if (paragraph.querySelector('em')) {
         paragraph.classList.add('inner-thought');
       }
-    });
-
-    passage.querySelectorAll('.spoken-line[data-speaker]').forEach(function (line) {
-      line.classList.add('dialogue-line', 'speaker-' + line.getAttribute('data-speaker'));
     });
 
     passage.querySelectorAll('a.link-internal').forEach(function (choice) {
@@ -1122,7 +1126,7 @@ The ticking returns first. Then the table. Then Voss, watching you from the othe
 :: Final Offer
 Voss studies you for a long time.
 
-“Rowan asked me something before he left.”
+<span class="spoken-line" data-speaker="voss">“Rowan asked me something before he left.”</span>
 
 She opens the folder one last time.
 
@@ -1142,24 +1146,24 @@ She pushes a blank statement across the table.
 * <<link "“I don’t remember. Can I go home?”">><<set $finalDecision to "denied">><<goto "Final Denial">><</link>>
 
 :: Frame Rowan
-“Maybe Rowan was driving. He was drunk. I don’t know.”
+<span class="spoken-line" data-speaker="alex">“Maybe Rowan was driving. He was drunk. I don’t know.”</span>
 
 Voss places a pen beside the statement.
 
 <<if $alibi is "rowan_drove" and $suspicion lte 3>>
-“Write down what you remember.”
+<span class="spoken-line" data-speaker="voss">“Write down what you remember.”</span>
 
 [[Take the pen->False Witness]]
 <<else>>
-“That isn’t what you told me before.”
+<span class="spoken-line" data-speaker="voss">“That isn’t what you told me before.”</span>
 
 [[Watch the last lie collapse->Caught in the Lie]]
 <</if>>
 
 :: Protect Rowan
-“Rowan wasn’t driving. That’s all I’m saying.”
+<span class="spoken-line" data-speaker="alex">“Rowan wasn’t driving. That’s all I’m saying.”</span>
 
-“Then who was?”
+<span class="spoken-line" data-speaker="voss">“Then who was?”</span>
 
 You look at the blank statement and say nothing.
 
@@ -1170,16 +1174,16 @@ You look at the blank statement and say nothing.
 <</if>>
 
 :: Final Denial
-“I don’t remember. Can I go home?”
+<span class="spoken-line" data-speaker="alex">“I don’t remember. Can I go home?”</span>
 
 Voss looks at the folder, then at you.
 
 <<if $suspicion lte 2>>
-“Yes,” she says at last. “Tonight.”
+<span class="spoken-line" data-speaker="voss">“Yes,” she says at last. “Tonight.”</span>
 
 [[Leave the room->The Perfect Lie]]
 <<else>>
-“You can stop pretending now, Alex.”
+<span class="spoken-line" data-speaker="voss">“You can stop pretending now, Alex.”</span>
 
 [[Remain seated->Caught in the Lie]]
 <</if>>
