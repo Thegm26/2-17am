@@ -1127,8 +1127,6 @@ Voss leans closer.
 :: Flashback
 The word pulls you out of the room.
 
-<span class="thought-line">Pothole.</span>
-
 Rowan is folded against the passenger window, eyes half-closed, too drunk to hold his head upright for long.
 
 The party did nothing. The music, the strangers, the drinks—none of it stopped you thinking about Maria. About the pregnancy. About every question you could not answer.
@@ -1290,8 +1288,6 @@ You do not.
 
 The police describe it as a single-vehicle collision. Maria knows it was the last decision in a chain of decisions you refused to face.
 
-''THE PERFECT LIE''
-
 You evaded Voss, but not yourself.
 
 <<link "Play again">><<include "Reset Case">><<goto "Start">><</link>>
@@ -1326,8 +1322,6 @@ You remain free, but freedom becomes another room you cannot leave. You drink to
 
 :: False Witness: Last Road
 Months after his sentencing, your car leaves an empty road and strikes a pole. This time there is no passenger and nobody else to blame.
-
-''FALSE WITNESS''
 
 You gave Rowan your guilt. It destroyed you both.
 
@@ -1365,8 +1359,6 @@ Years later, you begin answering her letters honestly. You cannot recover her ch
 
 When you eventually leave prison, nothing is repaired. You simply stop running from what you broke.
 
-''THE DRIVER''
-
 The truth cost you your old life. It left you the possibility of becoming someone else.
 
 <<link "Play again">><<include "Reset Case">><<goto "Start">><</link>>
@@ -1390,8 +1382,6 @@ You continue denying everything through the trial and into prison. Without the l
 Months into your sentence, you die by suicide in your cell.
 
 Maria receives the news alone. Your daughter will know you only through the explanations other people choose to give her.
-
-''CAUGHT IN THE LIE''
 
 You kept running until there was nowhere left to go.
 
